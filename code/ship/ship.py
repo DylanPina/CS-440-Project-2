@@ -6,9 +6,8 @@ from bots import Bot
 
 
 class Ship:
-    def __init__(self, D: int, q: int, seed: Seed = None) -> None:
+    def __init__(self, D: int, seed: Seed = None) -> None:
         self.D = D
-        self.q = q
         self.bot = None
         self.seed = seed
         self.layout = ""
@@ -19,11 +18,13 @@ class Ship:
             self.layout = seed.layout
             self.closed_cells = seed.closed_cells
             self.open_cells = seed.open_cells
+            self.leak_location = seed.leak_location
         else:
             self.layout = self.create_matrix()
             self.open_initial_cell()
             self.open_random_closed_cells_with_one_open_neighbor()
             self.open_random_dead_end_cells()
+            self.leak_location = self.place_leak()
 
     def create_matrix(self) -> List[List[int]]:
         """Creates an D x D matrix used for the layout of the ship"""
@@ -140,5 +141,17 @@ class Ship:
         if not self.seed:
             self.open_cells.remove((r, c))
             self.layout[r][c] = Cell.BOT
-        bot.starting_location = bot.location = (r, c)
+        bot.starting_location = bot.bot_location = (r, c)
         print(f"[INFO]: Bot placed at ({r}, {c})")
+
+    def place_leak(self) -> List[int]:
+        """Places an atmosphere leak on a random open cell and returns location of leak"""
+
+        r, c = choice(list(self.open_cells)
+                      ) if not self.seed else self.seed.leak_location
+        if not self.seed:
+            self.open_cells.remove((r, c))
+            self.layout[r][c] = Cell.LEAK
+
+        print(f"[INFO]: Atmosphere leak started at ({r}, {c})")
+        return [r, c]

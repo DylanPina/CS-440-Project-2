@@ -9,10 +9,10 @@ class GameBuilder():
     def __init__(self):
         self.game = Game()
 
-    def add_bot(self, bot: Bots):
+    def add_bot(self, bot: Bots, k: int):
         match bot:
             case Bots.BOT1:
-                self.game.set_bot(BotOne())
+                self.game.set_bot(BotOne(k))
         return self
 
     def add_ship(self, D: int = 50, seed: Seed = None):

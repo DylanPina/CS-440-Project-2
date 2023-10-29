@@ -10,6 +10,7 @@ class Seed:
         self.closed_cells = set()
         self.open_cells = set()
         self.bot_location = None
+        self.leak_location = None
         self.get_cells()
 
     def read_from_file(self, file: str) -> List[int]:
@@ -30,6 +31,8 @@ class Seed:
                     enums.append(Cell.OPEN)
                 elif val == str(Cell.BOT.value):
                     enums.append(Cell.BOT)
+                elif val == str(Cell.LEAK.value):
+                    enums.append(Cell.LEAK)
             layout.append(enums)
         return layout
 
@@ -44,3 +47,5 @@ class Seed:
                     self.open_cells.add((r, c))
                 elif self.layout[r][c] == Cell.BOT:
                     self.bot_location = (r, c)
+                elif self.layout[r][c] == Cell.LEAK:
+                    self.leak_location = (r, c)

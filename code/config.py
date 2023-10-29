@@ -6,9 +6,15 @@ class Cell(Enum):
     CLOSED = 0
     OPEN = 1
     BOT = 2
+    LEAK = 3
 
     def __str__(self):
         return '%s' % self.value
+
+
+class SensoryData(Enum):
+    NO_LEAK = 0
+    POSSIBLE_LEAK = 1
 
 
 class Bots(Enum):
@@ -26,19 +32,11 @@ class Bots(Enum):
 
 
 class GameResult():
-    def __init__(self, outcome: bool, bot_variant: Bots, ship_dimensions: List[int], q: int, run_time_ms: int):
+    def __init__(self, outcome: bool, bot_variant: Bots, ship_dimensions: List[int], run_time_ms: int):
         self.outcome = outcome
         self.bot_variant = bot_variant
         self.ship_dimensions = ship_dimensions
-        self.q = q
         self.run_time_ms = run_time_ms
-
-    def __str__(self):
-        return f"\n[Outcome]: {'Success' if self.outcome else 'Failure'}\
-                \n[Bot]: {self.bot_variant}\
-                \n[Ship Dimensions]: {self.ship_dimensions}\
-                \n[Fire Spread Probability]: {100 * self.q}%\
-                \n[Run Time]: {self.run_time_ms}ms\n"
 
 
 SHIP_LAYOUT_OUTPUT = "output/ship_layout.csv"
