@@ -52,6 +52,7 @@ class BotOne(Bot):
 
         # If the leak is not found then we update the sensory data square
         # with all the cells in the square to NO LEAK
+        direction = 1
         if not leak_found:
             for row in range(left, right):
                 if direction == 1:
