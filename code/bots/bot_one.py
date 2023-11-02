@@ -22,49 +22,31 @@ class BotOne(Bot):
 
     def sense(self) -> None:
         r, c = self.bot_location
-        square_traversal = []
         leak_found = False
-
         # Calculate the bounds of the square
         top, bottom = max(0, r - self.k), min(self.D, r + self.k + 1)
         left, right = max(0, c - self.k), min(self.D, c + self.k + 1)
 
-        # Initialize variables to keep track of the direction of traversal
-        direction = 1  # 1 for right, -1 for left
-
         # Loop through each row of the square
         for row in range(top, bottom):
-            # If direction is 1, traverse from left to right
-            if direction == 1:
-                for col in range(left, right):
-                    if self.ship_layout[row][col] == Cell.LEAK:
-                        leak_found = True
-            # If direction is -1, traverse from right to left
-            else:
-                for col in range(right - 1, left - 1, -1):
-                    if self.ship_layout[row][col] == Cell.LEAK:
-                        leak_found = True
-            # Change the direction of traversal
-            direction *= -1
+            for col in range(left, right):
+                if self.ship_layout[row][col] == Cell.LEAK:
+                    leak_found = True
 
         # If the leak is not found then we update the sensory data square
         # with all the cells in the square to NO LEAK
-        direction = 1
-        for row in range(left, right):
-            if direction == 1:
+        if not leak_found:
+            for row in range(top, bottom):
                 for col in range(left, right):
-                    self.sensory_data[row][col] = SensoryData(leak_found, leak_found)
-            # If direction is -1, traverse from right to left
-            else:
-                for col in range(right - 1, left - 1, -1):
-                    self.sensory_data[row][col] = SensoryData(leak_found, leak_found)
-            direction *= -1
+                    self.sensory_data[row][col] = SensoryData.NO_LEAK
+                    
+        self.print_sensory_data()
 
     def initialize_sensory_data(self) -> List[List[SensoryData]]:
         """Returns a matrix representing the bot's initial sensory data"""
 
         sensory_matrix = [
-            [SensoryData(False, False)] * len(self.ship_layout)
+            [SensoryData.NO_LEAK] * len(self.ship_layout)
             for _ in range(len(self.ship_layout))
         ]
 
@@ -74,7 +56,7 @@ class BotOne(Bot):
                     self.ship_layout[row][col] == Cell.OPEN
                     or self.ship_layout[row][col] == Cell.LEAK
                 ):
-                    sensory_matrix[row][col] = SensoryData(True, False)
+                    sensory_matrix[row][col] = SensoryData.POSSIBLE_LEAK
 
         return sensory_matrix
 
@@ -84,6 +66,9 @@ class BotOne(Bot):
         sensory_output = "--Sensory Data--\n"
         for row in range(len(self.sensory_data)):
             for col in range(len(self.sensory_data)):
+                if (row, col) == self.bot_location:
+                    sensory_output += f"X, "
+                    continue
                 sensory_output += f"{self.sensory_data[row][col].value}, "
 
             sensory_output = sensory_output.rsplit(", ", 1)[0]
@@ -92,19 +77,20 @@ class BotOne(Bot):
 
         print(sensory_output)
 
-    def closest_possible_leak_cell(self) -> Optional[List[int]]:
-        """Returns the closest possible leak cell from bots current location using BFS"""
+    def closest_possible_leak_cell(self) -> Optional[Tuple[List[List[int]]]]:
+        """Returns the closest possible leak cell using BFS from bot's current location"""
 
         visited = set()
         queue = deque([self.bot_location])
+        parent = {self.bot_location: self.bot_location}
+        shortest_path = []
 
         while queue:
             row, col = queue.popleft()
-
             # Check the current cell
-            if self.sensory_data[row][col].in_proximity:
-                return [row, col]
-
+            if self.sensory_data[row][col] == SensoryData.POSSIBLE_LEAK:
+                shortest_path.append((row, col))
+                
             # Mark the cell as visited
             visited.add((row, col))
             # Add the neighboring cells to the queue
@@ -114,47 +100,45 @@ class BotOne(Bot):
                     d_row in range(self.D)
                     and d_col in range(self.D)
                     and (d_row, d_col) not in visited
+                    and (d_row, d_col) not in self.traversal
+                    and self.ship_layout[d_row][d_col] != Cell.CLOSED
+                    and self.sensory_data[d_row][d_col] != SensoryData.INVALID_CELL
                 ):
                     queue.append((d_row, d_col))
+                    parent[(d_row, d_col)] = (row, col)
+
+        # If we found a reachable possible leak we reconstruct the path
+        # which lead us there
+        if shortest_path:
+            while shortest_path[-1] != self.bot_location:
+                r, c = parent[shortest_path[-1]]
+                shortest_path.append((r, c))
+            return (
+                shortest_path[0],
+                shortest_path[-2],
+            )  # (closest possible leak cell, next step to get there)
 
         return None  # Return None if no cell is found
 
     def next_step(self) -> Optional[List[int]]:
-        current_row, current_col = self.bot_location
         closest_possible_leak_cell = self.closest_possible_leak_cell()
-        print(f"Closest possible leak cell: {closest_possible_leak_cell}")
-
-        # If we can't get to any possible leak cells we will just return the next
-        # valid step we can take
+        # If we can't reach a possible leak from the current location we need to backtrack
         if not closest_possible_leak_cell:
-            for dr, dc in [(-1, 0), (1, 0), (0, -1), (0, 1)]:
-                d_row, d_col = current_row + dr, current_col + dc
-                if (
-                    d_row in range(self.D)
-                    and d_col in range(self.D)
-                    and not (d_row, d_col) in self.traversal
-                    and self.ship_layout[d_row][d_col] == Cell.OPEN
-                ):
-                    return [d_row, d_col]
+            print("[INFO]: Backtrack!")
+            return self.backtrack()
 
-        # Determine the direction to move which puts us as close as possible to
-        # the next possible leak cell
-        target_row, target_col = closest_possible_leak_cell
-        if current_row < target_row:  # Move Down
-            row, col = (min(current_row + 1, self.D - 1), current_col)
-            if self.ship_layout[row][col] == Cell.OPEN:
-                return (row, col)
-        if current_row > target_row:  # Move Up
-            row, col = (max(current_row - 1, 0), current_col)
-            if self.ship_layout[row][col] == Cell.OPEN:
-                return (row, col)
-        if current_col < target_col:  # Move Right
-            row, col = (current_row, min(current_col + 1, self.D - 1))
-            if self.ship_layout[row][col] == Cell.OPEN:
-                return (row, col)
-        if current_col > target_col:  # Move Left
-            row, col = (current_row, max(current_col - 1, 0))
-            if self.ship_layout[row][col] == Cell.OPEN:
-                return (row, col)
+        print(f"[INFO]: Closest possible leak cell: {closest_possible_leak_cell[0]}")
+        next_step = closest_possible_leak_cell[1]
+        self.parent[next_step] = self.bot_location
+        return next_step
 
-        return None
+    def backtrack(self) -> List[int]:
+        """
+        Marks the current bot location as an invalid cell in the sensory data, removes the current
+        location from the traversal, and returns the parent of the current location
+        """
+
+        r, c = self.bot_location
+        self.sensory_data[r][c] = SensoryData.INVALID_CELL
+        self.traversal.pop()
+        return self.parent[self.bot_location]

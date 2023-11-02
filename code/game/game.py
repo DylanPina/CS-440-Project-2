@@ -27,14 +27,14 @@ class Game:
         self.ship.add_bot(self.bot)
 
         timestep = 0
-        while timestep < 25:
+        while timestep < 10000:
             if timestep % 2 == 0:
                 self.bot.sense()
             elif timestep % 2 == 1:
                 self.bot.move()
-                print(f"stepped to {self.bot.bot_location}")
+                print(f"[INFO]: New location {self.bot.bot_location}")
                 if self.bot_found_leak():
-                    print("Bot found the leak!")
+                    print(f"[SUCCESS]: Bot found the leak in {timestep}!")
                     break
 
             timestep += 1

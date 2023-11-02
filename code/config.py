@@ -13,13 +13,10 @@ class Cell(Enum):
         return "%s" % self.value
 
 
-@dataclass
-class SensoryData:
-    possible_leak: bool
-    in_proximity: bool
-
-    def __str__(self) -> str:
-        return f"({'T' if self.possible_leak else 'F'}, {'T' if self.in_proximity else 'F'}"
+class SensoryData(Enum):
+    NO_LEAK = 0
+    POSSIBLE_LEAK = 1
+    INVALID_CELL = 2
 
 
 class Bots(Enum):
