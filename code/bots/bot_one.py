@@ -15,6 +15,13 @@ class BotOne(Bot):
         self.bot_location = self.next_step()
         # Update the traversal
         self.traversal.append(self.bot_location)
+        # Check if move brought us to the leak cell
+        r, c = self.bot_location
+        if self.ship_layout[r][c] == Cell.LEAK:
+            self.sensory_data[r][c] = SensoryData.LEAK
+            print(f"[INFO]: Bot has sensed the leak in its current cell!")
+        else:
+            self.sensory_data[r][c] = SensoryData.NO_LEAK
         return self.bot_location
 
     def setup(self) -> None:
@@ -39,8 +46,6 @@ class BotOne(Bot):
             for row in range(top, bottom):
                 for col in range(left, right):
                     self.sensory_data[row][col] = SensoryData.NO_LEAK
-                    
-        self.print_sensory_data()
 
     def initialize_sensory_data(self) -> List[List[SensoryData]]:
         """Returns a matrix representing the bot's initial sensory data"""
@@ -90,7 +95,7 @@ class BotOne(Bot):
             # Check the current cell
             if self.sensory_data[row][col] == SensoryData.POSSIBLE_LEAK:
                 shortest_path.append((row, col))
-                
+
             # Mark the cell as visited
             visited.add((row, col))
             # Add the neighboring cells to the queue

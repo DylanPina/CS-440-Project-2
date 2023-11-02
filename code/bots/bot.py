@@ -23,7 +23,6 @@ class Bot(ABC):
     def get_traversal(self) -> List[List[int]]:
         """Returns a matrix representing the traversal"""
 
-        print(f"[INFO]: Traversal -> {self.traversal}")
         if not self.traversal:
             return []
 

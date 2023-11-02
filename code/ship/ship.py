@@ -13,6 +13,7 @@ class Ship:
         self.layout = ""
         self.closed_cells = set()
         self.open_cells = set()
+        self.leak_location = None
 
         if seed:
             self.layout = seed.layout
@@ -24,15 +25,13 @@ class Ship:
             self.open_initial_cell()
             self.open_random_closed_cells_with_one_open_neighbor()
             self.open_random_dead_end_cells()
-            self.leak_location = self.place_leak()
 
     def create_matrix(self) -> List[List[int]]:
         """Creates an D x D matrix used for the layout of the ship"""
 
         # Generate D x D board initialized with 0
         layout = [[Cell.CLOSED] * self.D for _ in range(self.D)]
-        self.closed_cells = [(r, c) for r in range(self.D)
-                             for c in range(self.D)]
+        self.closed_cells = [(r, c) for r in range(self.D) for c in range(self.D)]
         return layout
 
     def open_initial_cell(self) -> None:
@@ -89,8 +88,7 @@ class Ship:
     def open_random_dead_end_cells(self) -> None:
         """Chooses half of the dead end cells at random and opens those chosen"""
 
-        dead_end_cells = self.get_cells_with_one_open_neighbor(
-            self.closed_cells)
+        dead_end_cells = self.get_cells_with_one_open_neighbor(self.closed_cells)
         directions = [[1, 0], [-1, 0], [0, 1], [0, -1]]
 
         for _ in range(0, len(dead_end_cells), 2):
@@ -115,8 +113,7 @@ class Ship:
                 else:
                     random_dir = directions[randint(0, len(directions) - 1)]
             # Get the new dead end cells
-            dead_end_cells = self.get_cells_with_one_open_neighbor(
-                self.closed_cells)
+            dead_end_cells = self.get_cells_with_one_open_neighbor(self.closed_cells)
 
     def open_cell(self, r: int, c: int) -> None:
         """Sets cell layout[r][c] as open"""
@@ -136,22 +133,24 @@ class Ship:
     def place_bot(self, bot: Bot) -> List[int]:
         """Places the bot on a random open cell and returns location of bot"""
 
-        r, c = choice(list(self.open_cells)
-                      ) if not self.seed else self.seed.bot_location
+        r, c = (
+            choice(list(self.open_cells)) if not self.seed else self.seed.bot_location
+        )
         if not self.seed:
             self.open_cells.remove((r, c))
             self.layout[r][c] = Cell.BOT
         bot.starting_location = bot.bot_location = (r, c)
         print(f"[INFO]: Bot placed at ({r}, {c})")
 
-    def place_leak(self) -> List[int]:
+    def place_leak(self) -> None:
         """Places an atmosphere leak on a random open cell and returns location of leak"""
-
-        r, c = choice(list(self.open_cells)
-                      ) if not self.seed else self.seed.leak_location
+        
+        r, c = (
+            choice(list(self.open_cells)) if not self.seed else self.seed.leak_location
+        )
         if not self.seed:
             self.open_cells.remove((r, c))
             self.layout[r][c] = Cell.LEAK
 
         print(f"[INFO]: Atmosphere leak started at ({r}, {c})")
-        return [r, c]
+        self.leak_location = (r, c)

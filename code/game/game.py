@@ -23,8 +23,11 @@ class Game:
             print("[ERROR]: Cannot play game without bot!")
             exit(1)
 
-        self.ship.place_leak()
         self.ship.add_bot(self.bot)
+        self.ship.place_leak()
+
+        open(SHIP_LAYOUT_OUTPUT, "w").close()
+        print_layout(self.ship.layout, title="--Initial State--")
 
         timestep = 0
         while timestep < 10000:
@@ -34,14 +37,12 @@ class Game:
                 self.bot.move()
                 print(f"[INFO]: New location {self.bot.bot_location}")
                 if self.bot_found_leak():
-                    print(f"[SUCCESS]: Bot found the leak in {timestep}!")
+                    print(f"[SUCCESS]: Bot found the leak in {timestep} timesteps!")
                     break
 
             timestep += 1
 
         if output_traversal:
-            open(SHIP_LAYOUT_OUTPUT, "w").close()
-            print_layout(self.ship.layout, title="--Initial State--")
             print_layout(
                 self.bot.get_traversal(),
                 bot_start_location=self.bot.starting_location,
