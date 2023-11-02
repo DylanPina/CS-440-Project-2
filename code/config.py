@@ -1,5 +1,6 @@
 from enum import Enum
 from typing import List
+from dataclasses import dataclass
 
 
 class Cell(Enum):
@@ -9,12 +10,16 @@ class Cell(Enum):
     LEAK = 3
 
     def __str__(self):
-        return '%s' % self.value
+        return "%s" % self.value
 
 
-class SensoryData(Enum):
-    NO_LEAK = 0
-    POSSIBLE_LEAK = 1
+@dataclass
+class SensoryData:
+    possible_leak: bool
+    in_proximity: bool
+
+    def __str__(self) -> str:
+        return f"({'T' if self.possible_leak else 'F'}, {'T' if self.in_proximity else 'F'}"
 
 
 class Bots(Enum):
@@ -31,8 +36,14 @@ class Bots(Enum):
         return f"Bot {self.value}"
 
 
-class GameResult():
-    def __init__(self, outcome: bool, bot_variant: Bots, ship_dimensions: List[int], run_time_ms: int):
+class GameResult:
+    def __init__(
+        self,
+        outcome: bool,
+        bot_variant: Bots,
+        ship_dimensions: List[int],
+        run_time_ms: int,
+    ):
         self.outcome = outcome
         self.bot_variant = bot_variant
         self.ship_dimensions = ship_dimensions

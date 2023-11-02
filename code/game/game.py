@@ -27,24 +27,26 @@ class Game:
         self.ship.add_bot(self.bot)
 
         timestep = 0
-        while timestep < 10:
+        while timestep < 25:
             if timestep % 2 == 0:
                 self.bot.sense()
             elif timestep % 2 == 1:
                 self.bot.move()
-                print("step")
-
-            if self.bot_found_leak():
-                print("Bot found the leak!")
-                break
+                print(f"stepped to {self.bot.bot_location}")
+                if self.bot_found_leak():
+                    print("Bot found the leak!")
+                    break
 
             timestep += 1
 
         if output_traversal:
             open(SHIP_LAYOUT_OUTPUT, "w").close()
             print_layout(self.ship.layout, title="--Initial State--")
-            print_layout(self.bot.get_traversal(
-            ), bot_start_location=self.bot.starting_location, title="--Traversal--")
+            print_layout(
+                self.bot.get_traversal(),
+                bot_start_location=self.bot.starting_location,
+                title="--Traversal--",
+            )
 
     def bot_found_leak(self) -> bool:
         return self.bot.bot_location == self.ship.leak_location
