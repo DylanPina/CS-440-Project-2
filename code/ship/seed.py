@@ -13,9 +13,9 @@ class Seed:
         self.leak_location = None
         self.get_cells()
 
-    def read_from_file(self, file: str) -> List[int]:
+    def read_from_file(self, file: str) -> List[List[int]]:
         """
-        Reads the string representation of a ship layout from the file location given by 
+        Reads the string representation of a ship layout from the file location given by
         'file' and returns a functional ship layout.
         """
 

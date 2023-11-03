@@ -10,7 +10,7 @@ class Ship:
         self.D = D
         self.bot = None
         self.seed = seed
-        self.layout = ""
+        self.layout = List[List[int]]
         self.closed_cells = set()
         self.open_cells = set()
         self.leak_location = None
@@ -35,7 +35,7 @@ class Ship:
         return layout
 
     def open_initial_cell(self) -> None:
-        """Choose a sself.quare in the interior to 'open' at random, or we use the seed if it was given"""
+        """Choose an open square in the interior to 'open' at random, or we use the seed if it was given"""
 
         random_r, random_c = randint(0, self.D - 1), randint(0, self.D - 1)
         self.open_cell(random_r, random_c)
@@ -127,8 +127,8 @@ class Ship:
 
         self.bot = bot
         self.place_bot(bot)
-        bot.set_ship_layout(self.layout)
-        bot.setup()
+        self.bot.set_ship_layout(self.layout)
+        self.bot.setup()
 
     def place_bot(self, bot: Bot) -> List[int]:
         """Places the bot on a random open cell and returns location of bot"""
@@ -144,11 +144,24 @@ class Ship:
 
     def place_leak(self) -> None:
         """Places an atmosphere leak on a random open cell and returns location of leak"""
-        
-        r, c = (
-            choice(list(self.open_cells)) if not self.seed else self.seed.leak_location
-        )
-        if not self.seed:
+
+        r, c = None, None
+        if self.seed:
+            r, c = self.seed.leak_location
+        else:
+            bot_row, bot_col = self.bot.bot_location
+            restricted = set()
+
+            top, bottom = max(0, bot_row - self.bot.k), min(self.D, bot_row + self.bot.k + 1)
+            left, right = max(0, bot_col - self.bot.k), min(self.D, bot_col + self.bot.k + 1)
+            for row in range(top, bottom):
+                for col in range(left, right):
+                    restricted.add((row, col))
+
+            r, c = choice(list(self.open_cells))
+            while (r, c) in restricted:
+                r, c = choice(list(self.open_cells))
+
             self.open_cells.remove((r, c))
             self.layout[r][c] = Cell.LEAK
 
