@@ -1,6 +1,6 @@
 from game import Game
 from ship import Ship
-from bots import BotOne
+from bots import BotOne, BotTwo
 from config import Bots
 from ship import Seed
 
@@ -13,6 +13,8 @@ class GameBuilder():
         match bot:
             case Bots.BOT1:
                 self.game.set_bot(BotOne(k))
+            case Bots.BOT2:
+                self.game.set_bot(BotTwo(k))
         return self
 
     def add_ship(self, D: int = 50, seed: Seed = None):

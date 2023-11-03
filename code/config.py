@@ -17,7 +17,8 @@ class SensoryData(Enum):
     NO_LEAK = 0
     POSSIBLE_LEAK = 1
     INVALID_CELL = 2
-    LEAK = 3
+    IN_PROXIMITY = 3
+    LEAK = 4
 
 
 class Bots(Enum):
