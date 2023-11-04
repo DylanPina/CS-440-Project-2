@@ -5,5 +5,5 @@ from ship import Seed
 if __name__ == '__main__':
     init_logging()
     GameBuilder().add_ship(D=10, seed=None).add_bot(
-        bot=Bots.BOT2, k=2).build().play(output_traversal=True)
+        bot=Bots.BOT1, k=2).build().play(output_traversal=True)
     # Seed("input/seed.csv")

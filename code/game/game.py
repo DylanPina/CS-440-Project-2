@@ -1,6 +1,6 @@
 import logging
 from ship import Ship
-from config import SHIP_LAYOUT_OUTPUT
+from config import INITIAL_SHIP_LAYOUT_OUTPUT_FILE, SHIP_LAYOUT_TRAVERSAL_OUTPUT_FILE
 from bots import Bot
 from ship import print_layout
 
@@ -27,8 +27,7 @@ class Game:
         self.ship.add_bot(self.bot)
         self.ship.place_leak()
 
-        open(SHIP_LAYOUT_OUTPUT, "w").close()
-        print_layout(self.ship.layout, title="--Initial State--")
+        print_layout(self.ship.layout, file=INITIAL_SHIP_LAYOUT_OUTPUT_FILE, title="--Initial State--")
 
         timestep = 0
         while timestep < 10000:
@@ -41,8 +40,9 @@ class Game:
         if output_traversal:
             print_layout(
                 self.bot.get_traversal(),
+                file=SHIP_LAYOUT_TRAVERSAL_OUTPUT_FILE,
                 bot_start_location=self.bot.starting_location,
-                title="--Traversal--",
+                title="--Traversal--"
             )
 
     def bot_found_leak(self) -> bool:

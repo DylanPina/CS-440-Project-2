@@ -2,8 +2,12 @@ import logging, argparse
 from enum import Enum
 from typing import List
 
+INITIAL_SHIP_LAYOUT_OUTPUT_FILE = "output/initial_ship_layout.csv" # Output file for ship layout
+SHIP_LAYOUT_TRAVERSAL_OUTPUT_FILE = "output/ship_layout_traversal.csv" # Output file for the traversal
 
 class Cell(Enum):
+    """Enum type for a ship layout cell"""
+
     CLOSED = 0
     OPEN = 1
     BOT = 2
@@ -12,16 +16,9 @@ class Cell(Enum):
     def __str__(self):
         return "%s" % self.value
 
-
-class SensoryData(Enum):
-    NO_LEAK = 0
-    POSSIBLE_LEAK = 1
-    INVALID_CELL = 2
-    LEAK = 3
-    IN_PROXIMITY = 4
-
-
 class Bots(Enum):
+    """Enum type for bots"""
+
     BOT1 = 1
     BOT2 = 2
     BOT3 = 3
@@ -36,6 +33,8 @@ class Bots(Enum):
 
 
 class GameResult:
+    """Contains all the information regarding the result of a game"""
+
     def __init__(
         self,
         outcome: bool,
@@ -65,5 +64,3 @@ def init_logging() -> None:
     args = parser.parse_args()
     log_level = log_levels[args.log_level] if args.log_level else logging.ERROR
     logging.basicConfig(level=log_level, filename="logs/log.log", filemode="w", format='%(asctime)s - [%(levelname)s]: %(message)s')
-
-SHIP_LAYOUT_OUTPUT = "output/ship_layout.csv"

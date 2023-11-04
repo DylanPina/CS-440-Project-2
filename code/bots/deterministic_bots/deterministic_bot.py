@@ -1,9 +1,10 @@
 import logging
-from abc import ABC, abstractmethod
+from abc import abstractmethod
 from typing import List, Optional, Tuple
-from config import Cell, SensoryData
+from config import Cell
 from collections import deque
 from bots import Bot
+from .sensory_data import SensoryData
 
 
 class DeterministicBot(Bot):

@@ -1,7 +1,8 @@
 import logging
 from .deterministic_bot import DeterministicBot
 from typing import Tuple, List, Optional
-from config import Bots, Cell, SensoryData
+from config import Bots, Cell
+from .sensory_data import SensoryData
 
 
 class BotOne(DeterministicBot):
