@@ -1,6 +1,6 @@
 from game import Game
 from ship import Ship
-from bots import BotOne, BotTwo
+from bots.deterministic_bots import BotOne, BotTwo
 from config import Bots
 from ship import Seed
 

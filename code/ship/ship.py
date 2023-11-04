@@ -58,6 +58,7 @@ class Ship:
                     open_neighbors += 1
 
             if open_neighbors == 1:
+
                 output.append((r, c))
 
         return output
