@@ -50,6 +50,8 @@ class GameResult:
 
 
 def init_logging() -> None:
+    """Initializes logging capabilities for entire applicaiton"""
+
     log_levels = {
         'DEBUG': logging.DEBUG,
         'INFO': logging.INFO,
@@ -61,8 +63,7 @@ def init_logging() -> None:
     parser = argparse.ArgumentParser()
     parser.add_argument('--log-level')
     args = parser.parse_args()
-    log_level = log_levels[args.log_level]
-
+    log_level = log_levels[args.log_level] if args.log_level else logging.ERROR
     logging.basicConfig(level=log_level, filename="logs/log.log", filemode="w", format='%(asctime)s - [%(levelname)s]: %(message)s')
 
 SHIP_LAYOUT_OUTPUT = "output/ship_layout.csv"

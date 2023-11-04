@@ -1,3 +1,4 @@
+import logging
 from typing import List, Optional
 from config import Cell, SHIP_LAYOUT_OUTPUT
 
@@ -6,7 +7,7 @@ def print_layout(layout: List[List[Cell]], file: Optional[str] = SHIP_LAYOUT_OUT
     """Prints out the current state of the layout to a specified file"""
 
     if not layout:
-        print(f"[ERROR]: Attempted to print empty layout")
+        logging.error("Attempted to print an empty layout")
         return
 
     output_file = None
@@ -28,4 +29,4 @@ def print_layout(layout: List[List[Cell]], file: Optional[str] = SHIP_LAYOUT_OUT
         output_file.write(f"{output}\n")
         output_file.close()
     except IOError:
-        print(f"[ERROR]: Unable to write to output file to '{file}'")
+        logging.exception(f"Unable to write to output file to '{file}'")

@@ -1,3 +1,4 @@
+import logging
 from ship import Ship
 from config import SHIP_LAYOUT_OUTPUT
 from bots import Bot
@@ -17,10 +18,10 @@ class Game:
 
     def play(self, output_traversal: bool = False) -> None:
         if not self.ship:
-            print("[ERROR]: Cannot play game without ship!")
+            logging.error("Cannot play game without ship!")
             exit(1)
         if not self.bot:
-            print("[ERROR]: Cannot play game without bot!")
+            logging.error("Cannot play game without bot!")
             exit(1)
 
         self.ship.add_bot(self.bot)
@@ -33,7 +34,7 @@ class Game:
         while timestep < 10000:
             self.bot.action(timestep)
             if self.bot_found_leak():
-                print(f"[SUCCESS]: Bot found the leak in {timestep} timesteps!")
+                logging.info(f"Bot found the leak in {timestep} timesteps!")
                 break
             timestep += 1
 

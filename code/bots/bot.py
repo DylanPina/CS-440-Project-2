@@ -1,3 +1,4 @@
+import logging
 from abc import ABC, abstractmethod
 from typing import List
 from config import Cell, SensoryData
@@ -70,7 +71,7 @@ class Bot(ABC):
             if row != len(self.ship_layout) - 1:
                 sensory_output += "\n"
 
-        print(sensory_output)
+        logging.info(sensory_output)
 
     @abstractmethod
     def setup(self) -> None:

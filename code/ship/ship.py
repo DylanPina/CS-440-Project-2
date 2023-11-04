@@ -1,3 +1,4 @@
+import logging
 from .seed import Seed
 from typing import List
 from config import Cell
@@ -140,7 +141,7 @@ class Ship:
             self.open_cells.remove((r, c))
             self.layout[r][c] = Cell.BOT
         bot.starting_location = bot.bot_location = (r, c)
-        print(f"[INFO]: Bot placed at ({r}, {c})")
+        logging.info(f"Bot placed at ({r}, {c})")
 
     def place_leak(self) -> None:
         """Places an atmosphere leak on a random open cell and returns location of leak"""
@@ -165,5 +166,5 @@ class Ship:
             self.open_cells.remove((r, c))
             self.layout[r][c] = Cell.LEAK
 
-        print(f"[INFO]: Atmosphere leak started at ({r}, {c})")
+        logging.info(f"Atmosphere leak started at ({r}, {c})")
         self.leak_location = (r, c)

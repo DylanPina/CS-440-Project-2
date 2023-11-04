@@ -1,3 +1,4 @@
+import logging
 from .bot import Bot
 from typing import Tuple, List, Optional
 from config import Bots, Cell, SensoryData
@@ -40,16 +41,16 @@ class BotOne(Bot):
     def move(self) -> Tuple[int]:
         # Move towards the closest possible leak cell
         self.bot_location = self.next_step()
+        logging.debug(f"Bot has moved to {self.bot_location}")
         # Update the traversal
         self.traversal.append(self.bot_location)
         # Check if move brought us to the leak cell
         r, c = self.bot_location
         if self.ship_layout[r][c] == Cell.LEAK:
             self.sensory_data[r][c] = SensoryData.LEAK
-            print(f"[INFO]: Bot has sensed the leak in its current cell!")
+            logging.debug("Bot has sensed the leak in its current cell")
         else:
             self.sensory_data[r][c] = SensoryData.NO_LEAK
-        print(f"[INFO]: New location {self.bot_location}")
         return self.bot_location
 
     def sense(self) -> None:
@@ -119,10 +120,10 @@ class BotOne(Bot):
         closest_possible_leak_cell = self.closest_possible_leak_cell()
         # If we can't reach a possible leak from the current location we need to backtrack
         if not closest_possible_leak_cell:
-            print("[INFO]: Backtrack!")
+            logging.debug("Backtrack!")
             return self.backtrack()
 
-        print(f"[INFO]: Closest possible leak cell: {closest_possible_leak_cell[0]}")
+        logging.debug(f"Closest possible leak cell: {closest_possible_leak_cell[0]}")
         next_step = closest_possible_leak_cell[1]
         self.parent[next_step] = self.bot_location
         return next_step
