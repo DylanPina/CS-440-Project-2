@@ -5,18 +5,25 @@ from collections import deque
 
 
 class BotTwo(Bot):
-    """"""
+    """
+    Performs the same as bot one until a leak has been found within the detection square. Once the 
+    leak has been found, the bot will stop sensing and visit each and every open cell which has been marked.
+    """
 
     def __init__(self, k: int) -> None:
         super().__init__(k)
         self.variant = Bots.BOT2
         self.sensory_data = List[SensoryData]
+        self.leak_found = False
 
     def setup(self) -> None:
         self.sensory_data = self.initialize_sensory_data()
 
     def action(self, timestep: int) -> None:
-        pass
+        if self.leak_found or timestep % 2:
+            self.move()
+        else:
+            self.sense()
 
     def move(self) -> Tuple[int]:
         # Move towards the closest possible leak cell
@@ -34,7 +41,6 @@ class BotTwo(Bot):
 
     def sense(self) -> None:
         r, c = self.bot_location
-        leak_found = False
         # Calculate the bounds of the square
         top, bottom = max(0, r - self.k), min(self.D, r + self.k + 1)
         left, right = max(0, c - self.k), min(self.D, c + self.k + 1)
@@ -43,18 +49,18 @@ class BotTwo(Bot):
         for row in range(top, bottom):
             for col in range(left, right):
                 if self.ship_layout[row][col] == Cell.LEAK:
-                    leak_found = True
+                    self.leak_found = True
 
         # If the leak is not found then we update the sensory data square
         # with all the cells in the square to NO LEAK
         for row in range(top, bottom):
             for col in range(left, right):
                 if (
-                    leak_found
+                    self.leak_found
                     and self.sensory_data[row][col] == SensoryData.POSSIBLE_LEAK
                 ):
                     self.sensory_data[row][col] = SensoryData.IN_PROXIMITY
-                else:
+                elif self.sensory_data[row][col] != SensoryData.INVALID_CELL:
                     self.sensory_data[row][col] = SensoryData.NO_LEAK
 
     def closest_possible_leak_cell(
@@ -103,21 +109,23 @@ class BotTwo(Bot):
         return None  # Return None if no cell is found
 
     def next_step(self) -> Optional[List[int]]:
-        # We see if we can reach any cells that were found in proximity of the leak
-        closest_possible_leak_cell = self.closest_possible_leak_cell(
-            SensoryData.IN_PROXIMITY
-        )
-        # If we can't find any cells marked in proximity of the leak, resort to cells marked as possible leak cells
-        if not closest_possible_leak_cell:
+        # If the leak has been found then we will just up dog it to the closest cell in proximity of the leak
+        closest_possible_leak_cell = None
+        if self.leak_found:
             closest_possible_leak_cell = self.closest_possible_leak_cell(
-                SensoryData.POSSIBLE_LEAK
+                SensoryData.IN_PROXIMITY
+            )
+        # If we can't find any cells marked in proximity of the leak, resort to cells marked as possible leak cells
+        else:
+            closest_possible_leak_cell = self.closest_possible_leak_cell(
+            SensoryData.POSSIBLE_LEAK
             )
         # If we can't reach a possible leak from the current location we need to backtrack to a previous cell
         if not closest_possible_leak_cell:
             print("[INFO]: Backtrack!")
             return self.backtrack()
 
-        print(f"[INFO]: Closest possible leak cell: {closest_possible_leak_cell[0]}")
+        print(f"[INFO]: Closest {'proximity' if self.leak_found else 'possible leak'} cell: {closest_possible_leak_cell[0]}")
         next_step = closest_possible_leak_cell[1]
         self.parent[next_step] = self.bot_location
         return next_step
