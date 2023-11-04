@@ -1,6 +1,6 @@
+import logging, argparse
 from enum import Enum
 from typing import List
-from dataclasses import dataclass
 
 
 class Cell(Enum):
@@ -48,5 +48,21 @@ class GameResult:
         self.ship_dimensions = ship_dimensions
         self.run_time_ms = run_time_ms
 
+
+def init_logging() -> None:
+    log_levels = {
+        'DEBUG': logging.DEBUG,
+        'INFO': logging.INFO,
+        'WARNING': logging.WARNING,
+        'ERROR': logging.ERROR,
+        'CRITICAL': logging.CRITICAL
+    }
+
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--log-level')
+    args = parser.parse_args()
+    log_level = log_levels[args.log_level]
+
+    logging.basicConfig(level=log_level, filename="logs/log.log", filemode="w", format='%(asctime)s - [%(levelname)s]: %(message)s')
 
 SHIP_LAYOUT_OUTPUT = "output/ship_layout.csv"
