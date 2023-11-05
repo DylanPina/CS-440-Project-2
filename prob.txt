@@ -1,0 +1,227 @@
+[ ][ ][ ][ ][ ][ ]
+[ ][ ][ ][ ][ ][ ]
+[ ][ ][ ][i][ ][ ]			P( leak in i )
+[ ][ ][ ][ ][ ][ ]			P( leak is not in i ) = 1 - P( leak in i )
+[ ][j][ ][ ][ ][ ]
+[ ][ ][ ][ ][ ][ ]
+
+Prob. Knowledge Base:
+
+    P( leak is in cell j ) for each open cell j
+    
+    For the cell i the bot is in 
+    
+        P( leak is in cell i ) = 0
+    
+    For every other cell j
+    
+        P( leak is in cell j ) = 1 / (# open cells - 1)
+        
+At any time t:
+    We have that time, bot is located at location bot_t <- cell the bot is in at time t
+
+
+    We can do two things:
+    
+        - Bot 'listens' for a beep (or a not-beep)
+        
+            Bot senses and collects DATA in cell i
+            
+                - DATA = Beep
+                
+                    P( leak is in cell i | we heard a beep while in cell i ) = 0
+                    P( leak is in cell j | we heard a beep while in cell i ) for j != i
+                    
+                    P( leak is in cell j | we heard a beep while in cell i )
+                    
+                        = P( leak is in cell j AND beep in cell i ) / P( beep in cell i )
+                        
+                        = P( leak in cell j ) * P( beep in cell i | leak in cell j ) / P( beep in cell i )
+                        
+                        = P( leak in cell j ) * e^(-a*(d(i,j)-1)) / P( beep in cell i )
+                        
+                        = P( leak in cell j ) * e^(-a*(d(i,j)-1)) / [ sum_k P( leak in k ) *  e^(-a*(d(i,k)-1)) ]
+                        
+                        
+                                P( beep in cell i ) = sum_k P( leak in k AND beep in cell i )
+                                
+                                = sum_k P( leak in k ) * P( beep in i | leak in k )
+                                
+                                = sum_k P( leak in k ) *  e^(-a*(d(i,k)-1))
+                
+                - DATA = No Beep
+                
+                    Currently:
+                    
+                        P( leak is in cell k ) for each cell k
+                
+                    New Probabilities:
+                        For cell i (our current cell): P( leak is in cell i | we heard no beep while in cell i ) = 0
+                        For cell j != i : P( leak is in cell j | we heard no beep while in cell i )
+                                            = P( leak in cell j ) * ( 1 - e^(-a*(d(i,j)-1)) ) / [ sum_k P( leak is in k ) * ( 1 - e^(-a*(d(i,k)-1)) ) ]
+                    
+                    
+                        
+        
+        
+        - Bot can move to another cell
+        
+            Bot moves from cell bot_t to cell i
+            
+                - Bot finds the leak in cell i
+                
+                    UPDATE
+                        Current P( leak is in cell k ) for each cell k
+                    
+                        New Probabilities:
+                
+                            For cell i: P( leak in cell i | bot finds the leak in cell i ) = 1
+                            For cell j != i: P( leak in cell j | bot finds the leak in cell i ) = 0
+                
+                - Bot does not find the leak in cell i
+                    
+                    UPDATE:
+                        Current P( leak is in cell k ) for each cell k
+                        
+                        New Probabilities:
+                        
+                            For cell i: P( leak is in cell i | bot doesn't find leak in i ) = 0
+                            For cell j != i: P( leak is in cell j | bot doesn't find leak in i )
+                                                = P( leak is in cell j ) * 1 / (1 - P( leak is in i ))
+                    
+                        
+    
+    P( A and B ) = P( A ) * P( B | A )
+    
+    
+    Conditional Probability
+    
+        P( A | B ) = P( A and B ) / P( B )
+        
+            -> P( A and B ) = P( B ) * P( A | B )
+            -> P( A and B ) = P( A ) * P( B | A )
+    
+    
+    
+    
+    
+    
+    
+    P( leak is in cell i | bot doesn't find leak in i ) = 0
+    P( leak is in cell j | bot doesn't find leak in i ) for each j != i
+        
+    = P( leak is in cell j AND bot doesn't find leak in i ) / P( bot doesn't find leak in i )
+        
+    = P( leak is in cell j ) * P( bot doesn't find leak in i | leak is in cell j) / P( bot doesn't find leak in i )
+    
+    = P( leak is in cell j ) * 1 / P( leak is not in i )
+    
+    = P( leak is in cell j ) * 1 / (1 - P( leak is in i ))
+    
+    
+    
+    
+    P( leak is in cell j | we heard no beep while in cell i ) for j != i
+    
+        = P( leak in cell j AND no beep in cell i ) / P( no beep in cell i )
+        
+        = P( leak in cell j ) * P( no beep in cell i | leak in cell j ) / P( no beep in cell i )
+        
+        = P( leak in cell j ) * ( 1 - e^(-a*(d(i,j)-1)) ) / P( no beep in cell i )
+        
+        = P( leak in cell j ) * ( 1 - e^(-a*(d(i,j)-1)) ) / [ sum_k P( leak is in k ) * ( 1 - e^(-a*(d(i,k)-1)) ) ]
+
+
+    P( no beep in cell i ) = sum_k P( leak is in k AND no beep in cell i ) <- marginalization
+    
+    = sum_k P( leak is in k ) * P( no beep in cell i | leak is in k )
+    
+    = sum_k P( leak is in k ) * ( 1 - e^(-a*(d(i,k)-1)) )
+                
+                
+                
+                
+                
+                
+                
+            SHIP = [ each cell labeled POSSIBLE ]
+            
+            bot position = initial position
+            
+            SHIP[ bot position ] = FALSE
+            
+            total actions = 0
+            
+            LOOP UNTIL BOT POSITION == LEAK POSITION:
+            
+                run detection square on BOT POSITION
+                total actions += 1
+                    
+                if detection = POSITIVE:
+                    SHIP[ cell ] = FALSE for each cell OUTSIDE detection square
+                    
+                if detection = NEGATIVE:
+                    SHIP[ cell ] = FALSE for each cell in detection square
+                    
+                next position = cell nearest BOT POSITION s.t. SHIP[ cell ] = POSSIBLE
+                
+                move BOT POSITION to next position
+                total actions += distance( BOT POSITION, next position )
+        
+            return total actions
+                
+                
+                
+                
+                
+                
+                
+                
+                
+            At at any time t:
+            
+                    next position = cell j that has highest P( leak is in cell j )
+                    
+                    
+                    plan path ( bot position, next position )
+                    
+                    
+                    
+        
+        Enter cell i, don't find the leak
+        
+            P( leak is in cell i | you didn't find it in cell i ) = 0
+            
+            P( leak is in cell j | you didn't find it in cell i ) = P( leak in cell j ) / ( 1 - P( leak in cell i ) )
+                
+                
+                
+                
+                
+                
+                
+                
+                
+                
+                
+                
+                
+                
+                
+                
+                
+                
+                
+                
+                
+                
+
+
+    
+    
+    
+    
+    
+    
+    
+    

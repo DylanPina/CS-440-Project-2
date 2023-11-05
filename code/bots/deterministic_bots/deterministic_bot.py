@@ -1,5 +1,5 @@
 import logging
-from abc import abstractmethod
+from abc import ABC
 from typing import List, Optional, Tuple
 from config import Cell
 from collections import deque
@@ -7,8 +7,8 @@ from bots import Bot
 from .sensory_data import SensoryData
 
 
-class DeterministicBot(Bot):
-    """Abstract base class for bots"""
+class DeterministicBot(Bot, ABC):
+    """Abstract base class for determnistic bots"""
 
     def __init__(self, k: int):
         super().__init__()
@@ -20,10 +20,6 @@ class DeterministicBot(Bot):
         self.sensory_data = List[SensoryData]
         self.traversal = []
         self.parent = {}
-
-    def set_ship_layout(self, ship_layout: List[List[Cell]]) -> None:
-        self.ship_layout = ship_layout
-        self.D = len(ship_layout)
 
     def initialize_sensory_data(self) -> List[List[SensoryData]]:
         """Returns a matrix representing the bot's initial sensory data"""
@@ -42,7 +38,7 @@ class DeterministicBot(Bot):
                     sensory_matrix[row][col] = SensoryData.POSSIBLE_LEAK
 
         return sensory_matrix
-    
+
     def closest_possible_leak_cell(
         self, target: SensoryData
     ) -> Optional[Tuple[List[List[int]]]]:
@@ -88,27 +84,10 @@ class DeterministicBot(Bot):
 
         return None  # Return None if no cell is found
 
-    def get_traversal(self) -> List[List[int]]:
-        """Returns a matrix representing the traversal"""
-
-        if not self.traversal:
-            return []
-
-        traversal_matrix = [
-            [Cell.CLOSED] * len(self.ship_layout) for _ in range(len(self.ship_layout))
-        ]
-
-        for r, c in self.traversal[:-1]:
-            traversal_matrix[r][c] = Cell.OPEN
-
-        r, c = self.traversal[-1]
-        traversal_matrix[r][c] = self.ship_layout[r][c]
-        return traversal_matrix
-
     def print_sensory_data(self) -> None:
         """Prints the current sensory data to the console"""
 
-        sensory_output = "--Sensory Data--\n"
+        sensory_output = "\n--Sensory Data--\n"
         for row in range(len(self.sensory_data)):
             for col in range(len(self.sensory_data)):
                 if (row, col) == self.bot_location:
@@ -120,10 +99,4 @@ class DeterministicBot(Bot):
             if row != len(self.ship_layout) - 1:
                 sensory_output += "\n"
 
-        logging.info(sensory_output)
-
-    @abstractmethod
-    def setup(self) -> None:
-        """Performs any initial setup which the bot needs to do"""
-
-        pass
+        logging.debug(sensory_output)

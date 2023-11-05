@@ -4,6 +4,7 @@ from typing import List
 from config import Cell
 from random import randint, choice
 from bots import Bot
+from bots.deterministic_bots import DeterministicBot
 
 
 class Ship:
@@ -32,7 +33,8 @@ class Ship:
 
         # Generate D x D board initialized with 0
         layout = [[Cell.CLOSED] * self.D for _ in range(self.D)]
-        self.closed_cells = [(r, c) for r in range(self.D) for c in range(self.D)]
+        self.closed_cells = [(r, c) for r in range(self.D)
+                             for c in range(self.D)]
         return layout
 
     def open_initial_cell(self) -> None:
@@ -90,7 +92,8 @@ class Ship:
     def open_random_dead_end_cells(self) -> None:
         """Chooses half of the dead end cells at random and opens those chosen"""
 
-        dead_end_cells = self.get_cells_with_one_open_neighbor(self.closed_cells)
+        dead_end_cells = self.get_cells_with_one_open_neighbor(
+            self.closed_cells)
         directions = [[1, 0], [-1, 0], [0, 1], [0, -1]]
 
         for _ in range(0, len(dead_end_cells), 2):
@@ -115,7 +118,8 @@ class Ship:
                 else:
                     random_dir = directions[randint(0, len(directions) - 1)]
             # Get the new dead end cells
-            dead_end_cells = self.get_cells_with_one_open_neighbor(self.closed_cells)
+            dead_end_cells = self.get_cells_with_one_open_neighbor(
+                self.closed_cells)
 
     def open_cell(self, r: int, c: int) -> None:
         """Sets cell layout[r][c] as open"""
@@ -136,7 +140,8 @@ class Ship:
         """Places the bot on a random open cell and returns location of bot"""
 
         r, c = (
-            choice(list(self.open_cells)) if not self.seed else self.seed.bot_location
+            choice(list(self.open_cells)
+                   ) if not self.seed else self.seed.bot_location
         )
         if not self.seed:
             self.open_cells.remove((r, c))
@@ -145,7 +150,20 @@ class Ship:
         logging.info(f"Bot placed at ({r}, {c})")
 
     def place_leak(self) -> None:
-        """Places an atmosphere leak on a random open cell and returns location of leak"""
+        """Places a leak based on the type of bot"""
+
+        if isinstance(self.bot, DeterministicBot):
+            logging.debug("Placing leak for deterministic bot")
+            self.place_leak_deterministic()
+        else:
+            logging.debug("Placing leak for probabilistic bot")
+            self.place_leak_probabilistic()
+
+    def place_leak_deterministic(self) -> None:
+        """
+        Places an atmosphere leak on a random open cell out of proximity of the bot's detection radius
+        and returns location of leak
+        """
 
         r, c = None, None
         if self.seed:
@@ -154,8 +172,10 @@ class Ship:
             bot_row, bot_col = self.bot.bot_location
             restricted = set()
 
-            top, bottom = max(0, bot_row - self.bot.k), min(self.D, bot_row + self.bot.k + 1)
-            left, right = max(0, bot_col - self.bot.k), min(self.D, bot_col + self.bot.k + 1)
+            top, bottom = max(
+                0, bot_row - self.bot.k), min(self.D, bot_row + self.bot.k + 1)
+            left, right = max(
+                0, bot_col - self.bot.k), min(self.D, bot_col + self.bot.k + 1)
             for row in range(top, bottom):
                 for col in range(left, right):
                     restricted.add((row, col))
@@ -169,3 +189,19 @@ class Ship:
 
         logging.info(f"Atmosphere leak started at ({r}, {c})")
         self.leak_location = (r, c)
+        self.bot.leak_location = (r, c)
+
+    def place_leak_probabilistic(self) -> None:
+        """Places an atmosphere leak on a random open cell and returns location of leak"""
+
+        r, c = None, None
+        if self.seed:
+            r, c = self.seed.leak_location
+        else:
+            r, c = choice(list(self.open_cells))
+            self.open_cells.remove((r, c))
+            self.layout[r][c] = Cell.LEAK
+
+        logging.info(f"Atmosphere leak started at ({r}, {c})")
+        self.leak_location = (r, c)
+        self.bot.leak_location = (r, c)
