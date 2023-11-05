@@ -7,6 +7,8 @@
 
 Prob. Knowledge Base:
 
+    Bot is d-steps away from the leak (shortest path through the ship), the probability of receiving a beep is e^(-a*(d-1)),
+
     P( leak is in cell j ) for each open cell j
     
     For the cell i the bot is in 
@@ -101,11 +103,8 @@ At any time t:
             -> P( A and B ) = P( B ) * P( A | B )
             -> P( A and B ) = P( A ) * P( B | A )
     
-    
-    
-    
-    
-    
+
+
     
     P( leak is in cell i | bot doesn't find leak in i ) = 0
     P( leak is in cell j | bot doesn't find leak in i ) for each j != i

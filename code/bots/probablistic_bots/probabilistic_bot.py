@@ -26,17 +26,17 @@ class ProbabilisticBot(Bot, ABC):
         """Returns a matrix representing the bot's initial sensory data"""
 
         sensory_matrix = [
-            [SensoryData()] * self.D
+            [SensoryData() for _ in range(self.D)]
             for _ in range(self.D)
         ]
-        self.open_cell_count = self.D**2
 
-        for row in range(self.D):
-            for col in range(self.D):
+        for row in range(len(sensory_matrix)):
+            for col in range(len(sensory_matrix)):
                 if (
-                    self.ship_layout[row][col] == Cell.CLOSED
+                    self.ship_layout[row][col] == Cell.CLOSED or self.ship_layout == Cell.BOT
                 ):
-                    sensory_matrix[row][col].probability = 0
+                    sensory_matrix[row][col].probability = 0.0
+                else:
                     self.open_cells.add((row, col))
 
         return sensory_matrix
@@ -48,7 +48,7 @@ class ProbabilisticBot(Bot, ABC):
         for row in range(len(self.sensory_data)):
             for col in range(len(self.sensory_data)):
                 if (row, col) == self.bot_location:
-                    sensory_output += f"X, "
+                    sensory_output += f"BOT, "
                 elif self.sensory_data[row][col].invalid:
                     sensory_output += "BRUH, "
                 else:
@@ -59,3 +59,14 @@ class ProbabilisticBot(Bot, ABC):
                 sensory_output += "\n"
 
         logging.debug(sensory_output)
+
+    def print_distances(self) -> None:
+        """Prints the distance map (for debugging purposes)"""
+
+        output = "\n--Distance Map (Floyd-Warshall Algorithm)--"
+        for key, value in self.distance.items():
+            output += f"\nFrom {key}:"
+            for target, distance in value.items():
+                output += f"\n\tTo {target}: {distance}"
+
+        logging.debug(output)

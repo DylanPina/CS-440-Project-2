@@ -98,5 +98,5 @@ class DeterministicBot(Bot, ABC):
             sensory_output = sensory_output.rsplit(", ", 1)[0]
             if row != len(self.ship_layout) - 1:
                 sensory_output += "\n"
-
+                
         logging.debug(sensory_output)

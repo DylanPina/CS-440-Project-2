@@ -19,8 +19,8 @@ class BotThree(ProbabilisticBot):
 
     def setup(self) -> None:
         self.sensory_data = self.initialize_sensory_data()
+        self.print_sensory_data()
         self.distance = self.get_distances()
-        self.print_distances()
 
     def action(self, timestep: int) -> None:
         if timestep % 2:
@@ -45,6 +45,7 @@ class BotThree(ProbabilisticBot):
 
     def sense(self) -> None:
         beep, self.p_beep = self.beep()
+        print(self.p_beep)
         if beep:
             logging.debug("BEEP!!!")
         else:
@@ -107,7 +108,7 @@ class BotThree(ProbabilisticBot):
             if i in self.distance and k in self.distance[i]:
                 p_beep += p_leak_k * \
                     e**(-self.alpha * (self.distance[i][k] - 1))
-        return (p_beep, random.random() < p_beep)
+        return (random.random() < p_beep, p_beep)
 
     def get_distances(self):
         """Returns the shortest path from any node to any other node"""
@@ -181,13 +182,3 @@ class BotThree(ProbabilisticBot):
                     1 - (e**(-self.alpha *
                              (self.distance[self.bot_location][k] - 1)))
             return (p_leak_in_cell_j / p_not_beep_j) / sum_k_leak_no_beep
-
-    def print_distances(self) -> None:
-        """Prints the distance map **for debugging purposes**"""
-
-        output = "\n--Distance Map (Floyd-Warshall Algorithm)--"
-        for key, value in self.distance.items():
-            output += f"\nFrom {key}:"
-            for target, distance in value.items():
-                output += f"\n\tTo {target}: {distance}"
-        logging.debug(output)
