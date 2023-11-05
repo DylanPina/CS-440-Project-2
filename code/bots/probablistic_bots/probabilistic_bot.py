@@ -22,6 +22,8 @@ class ProbabilisticBot(Bot, ABC):
         self.parent = {}
         self.open_cells = set()
         self.highest_p_cell = None
+        self.beeps = 0
+        self.no_beeps = 0
 
     def initialize_sensory_data(self) -> List[List[SensoryData]]:
         """Returns a matrix representing the bot's initial sensory data"""
@@ -37,7 +39,7 @@ class ProbabilisticBot(Bot, ABC):
                     self.ship_layout[row][col] == Cell.CLOSED or self.ship_layout[row][col] == Cell.BOT
                 ):
                     sensory_matrix[row][col].probability = 0.0
-                elif self.ship_layout[row][col] != Cell.CLOSED:
+                if self.ship_layout[row][col] != Cell.CLOSED:
                     self.open_cells.add((row, col))
 
         return sensory_matrix
@@ -67,7 +69,6 @@ class ProbabilisticBot(Bot, ABC):
                     d_row in range(self.D)
                     and d_col in range(self.D)
                     and (d_row, d_col) not in visited
-                    and (d_row, d_col) not in self.traversal
                     and self.ship_layout[d_row][d_col] != Cell.CLOSED
                     and not self.sensory_data[d_row][d_col].invalid
                 ):
@@ -81,7 +82,7 @@ class ProbabilisticBot(Bot, ABC):
                 r, c = parent[shortest_path[-1]]
                 shortest_path.append((r, c))
             logging.debug(
-                f"Path to highest p cell: {shortest_path.copy().reverse()}")
+                f"Path to highest p cell: {shortest_path[::-1]}")
             return (
                 shortest_path[0],
                 shortest_path[-2],
