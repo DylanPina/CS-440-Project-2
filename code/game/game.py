@@ -30,7 +30,7 @@ class Game:
         print_layout(self.ship.layout, file=INITIAL_SHIP_LAYOUT_OUTPUT_FILE, title="--Initial State--")
 
         timestep = 0
-        while timestep < 10000:
+        while timestep < 100000:
             self.bot.action(timestep)
             if self.bot_found_leak():
                 logging.info(f"Bot found the leak in {timestep} timesteps!")

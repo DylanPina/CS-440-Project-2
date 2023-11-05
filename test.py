@@ -55,3 +55,6 @@ for key, value in shortest_paths.items():
     for target, distance in value.items():
         if distance != float('inf'):
             print(f"  To {target}: {distance}")
+
+    shortest_paths[(0, 0)][(0, 1)] = 1
+print(shortest_paths)
