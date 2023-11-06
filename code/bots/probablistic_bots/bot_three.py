@@ -217,8 +217,9 @@ class BotThree(ProbabilisticBot):
                 if not self.sensory_data[k_row][k_col].probability:
                     continue
 
-                print(
-                    f"self.sensory_data[k_row][k_col].probability * (e**(-self.alpha *  (self.distance[self.bot_location][(k_row, k_col)] - 1))) = {self.sensory_data[k_row][k_col].probability} * 1- e^(-{self.alpha} * {self.distance[self.bot_location][(k_row, k_col)]} - 1) = {self.sensory_data[k_row][k_col].probability * (1 - (e**(-self.alpha * (self.distance[self.bot_location][(k_row, k_col)] - 1))))}")
+                # print(
+                #     f"self.sensory_data[k_row][k_col].probability * (e**(-self.alpha *  (self.distance[self.bot_location][(k_row, k_col)] - 1))) = {self.sensory_data[k_row][k_col].probability} * 1- e^(-{self.alpha} * {self.distance[self.bot_location][(k_row, k_col)]} - 1) = {self.sensory_data[k_row][k_col].probability * (1 - (e**(-self.alpha * (self.distance[self.bot_location][(k_row, k_col)] - 1))))}")
+
                 sum_k_leak_no_beep += self.sensory_data[k_row][k_col].probability * \
                     (1 - (e**(-self.alpha *
                               (self.distance[self.bot_location][(k_row, k_col)] - 1))))

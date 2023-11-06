@@ -193,34 +193,58 @@ At any time t:
             
             P( leak is in cell j | you didn't find it in cell i ) = P( leak in cell j ) / ( 1 - P( leak in cell i ) )
                 
-                
-                
-                
-                
-                
-                
-                
-                
-                
-                
-                
-                
-                
-                
-                
-                
-                
-                
-                
-                
-                
 
+-- New Findings --
+Suppose you have five cells, a b c d, e
 
-    
-    
-    
-    
-    
-    
-    
-    
+P(leak in a) = 0.4
+P(leak in b) = 0.2
+P(leak in c) = 0.1
+P(leak in d) = 0.3
+P(leak in e) = 0.0
+
+You are currently in cell e
+
+You move to cell d
+You do not find the leak
+
+What are P(leak in a | leak not in d), etc, for each cell?
+
+What are the new probabilities?
+
+P( leak in a | leak not in d )
+   = P( leak in a and leak not in d ) / P( leak not in d )
+   = P( leak in a ) * P( leak not in d | leak in a ) / P( leak not in d)
+   = ( P( leak in a ) * 1 ) / P( leak not in d )
+   = P( leak in a ) / ( 1 - P ( leak is in d ) )
+   = 0.4 / ( 1 - 0.3 ) = 0.4 / 0.7 = 0.57
+
+P( leak in b | leak not in d )
+   = P( leak in b and leak not in d ) / P( leak not in d )
+   = P( leak in b ) * P( leak not in d | leak in b ) / P( leak not in d)
+   = ( P( leak in b ) * 1 ) / P( leak not in d )
+   = P( leak in b ) / ( 1 - P ( leak is in d ) )
+   = 0.2 / 0.7 = 0.28
+
+P( leak in c | leak not in d )
+   = P( leak in c and leak not in d ) / P( leak not in d )
+   = P( leak in c ) * P( leak not in d | leak in c ) / P( leak not in d)
+   = ( P( leak in c ) * 1 ) / P( leak not in d )
+   = P( leak in c ) / ( 1 - P ( leak is in d ) )
+   = 0.1 / 0.7 = 0.14
+
+P( leak in d | leak not in d ) = 0
+
+P( leak in e | leak not in d )
+   = P( leak in e and leak not in d ) / P( leak not in d )
+   = P( leak in e ) * P( leak not in d | leak in e ) / P( leak not in d)
+   = ( P( leak in e ) * 1 ) / P( leak not in d )
+   = P( leak in e ) / ( 1 - P ( leak is in d ) )
+   = 0 / 0.7 = 0
+
+New probabilities
+P(leak in a) = 0.57
+P(leak in b) = 0.28
+P(leak in c) = 0.14
+P(leak in d) = 0.0
+P(leak in e) = 0.0

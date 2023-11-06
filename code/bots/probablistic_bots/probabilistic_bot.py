@@ -33,14 +33,27 @@ class ProbabilisticBot(Bot, ABC):
             for _ in range(self.D)
         ]
 
+        # for row in range(len(sensory_matrix)):
+        #     for col in range(len(sensory_matrix)):
+        #         if (
+        #             self.ship_layout[row][col] == Cell.CLOSED or self.ship_layout[row][col] == Cell.BOT
+        #         ):
+        #             sensory_matrix[row][col].probability = 0.0
+        #         if self.ship_layout[row][col] != Cell.CLOSED:
+        #             self.open_cells.add((row, col))
         for row in range(len(sensory_matrix)):
             for col in range(len(sensory_matrix)):
-                if (
-                    self.ship_layout[row][col] == Cell.CLOSED or self.ship_layout[row][col] == Cell.BOT
-                ):
-                    sensory_matrix[row][col].probability = 0.0
-                if self.ship_layout[row][col] != Cell.CLOSED:
+                if not self.ship_layout[row][col] == Cell.CLOSED:
                     self.open_cells.add((row, col))
+                else:
+                    sensory_matrix[row][col].closed = True
+
+        for row, col in self.open_cells:
+            if not self.ship_layout[row][col] == Cell.BOT:
+                sensory_matrix[row][col].probability = 1 / \
+                    (len(self.open_cells) - 1)
+            else:
+                sensory_matrix[row][col].probability = 0.00
 
         return sensory_matrix
 
@@ -110,7 +123,12 @@ class ProbabilisticBot(Bot, ABC):
             if row != len(self.ship_layout) - 1:
                 sensory_output += "\n"
 
+        sensory_data_sum = 0
+        for row, col in self.open_cells:
+            sensory_data_sum += self.sensory_data[row][col].probability
+
         logging.debug(sensory_output)
+        logging.debug(f"Sensory data sum: {sensory_data_sum}")
 
     def invalid_cell(self, row: int, col: int) -> None:
         """Returns true if cell is invalid"""
