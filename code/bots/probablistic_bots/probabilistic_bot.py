@@ -33,14 +33,6 @@ class ProbabilisticBot(Bot, ABC):
             for _ in range(self.D)
         ]
 
-        # for row in range(len(sensory_matrix)):
-        #     for col in range(len(sensory_matrix)):
-        #         if (
-        #             self.ship_layout[row][col] == Cell.CLOSED or self.ship_layout[row][col] == Cell.BOT
-        #         ):
-        #             sensory_matrix[row][col].probability = 0.0
-        #         if self.ship_layout[row][col] != Cell.CLOSED:
-        #             self.open_cells.add((row, col))
         for row in range(len(sensory_matrix)):
             for col in range(len(sensory_matrix)):
                 if not self.ship_layout[row][col] == Cell.CLOSED:
@@ -83,7 +75,6 @@ class ProbabilisticBot(Bot, ABC):
                     and d_col in range(self.D)
                     and (d_row, d_col) not in visited
                     and self.ship_layout[d_row][d_col] != Cell.CLOSED
-                    and not self.sensory_data[d_row][d_col].invalid
                 ):
                     queue.append((d_row, d_col))
                     parent[(d_row, d_col)] = (row, col)
@@ -104,18 +95,18 @@ class ProbabilisticBot(Bot, ABC):
         logging.debug("Path to highest p cell: None")
         return None  # Return None if no cell is found
 
-    def print_sensory_data(self) -> None:
+    def print_sensory_data(self, msg: str = None) -> None:
         """Outputs the current sensory data to the log"""
 
         precision = 5
         max_length = precision + 2
-        sensory_output = "\n--Sensory Data--\n"
+        sensory_output = f"\n--Sensory Data{ msg if msg else ''}--\n"
         for row in range(len(self.sensory_data)):
             for col in range(len(self.sensory_data)):
                 if (row, col) == self.bot_location:
                     sensory_output += f"{'BOT'.ljust(max_length, ' ')}, "
-                elif self.sensory_data[row][col].invalid:
-                    sensory_output += f"{'INV'.ljust(max_length, ' ')}, "
+                # elif self.sensory_data[row][col].invalid:
+                #     sensory_output += f"{'INV'.ljust(max_length, ' ')}, "
                 else:
                     sensory_output += f"{str(round(self.sensory_data[row][col].probability, precision)).ljust(max_length, ' ')}, "
 
@@ -128,23 +119,7 @@ class ProbabilisticBot(Bot, ABC):
             sensory_data_sum += self.sensory_data[row][col].probability
 
         logging.debug(sensory_output)
-        logging.debug(f"Sensory data sum: {sensory_data_sum}")
-
-    def invalid_cell(self, row: int, col: int) -> None:
-        """Returns true if cell is invalid"""
-
-        open_neighbors = 0
-        for dr, dc in [(-1, 0), (1, 0), (0, -1), (0, 1)]:
-            d_row, d_col = row + dr, col + dc
-            if (
-                d_row in range(self.D)
-                and d_col in range(self.D)
-                and self.ship_layout[d_row][d_col] != Cell.CLOSED
-                and not self.sensory_data[d_row][d_col].invalid
-            ):
-                open_neighbors += 1
-
-        return open_neighbors <= 1
+        logging.debug(f"Sensory data sum: {sensory_data_sum}\n")
 
     def print_distances(self) -> None:
         """Prints the distance map (for debugging purposes)"""
