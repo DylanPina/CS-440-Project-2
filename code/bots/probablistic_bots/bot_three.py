@@ -47,7 +47,7 @@ class BotThree(ProbabilisticBot):
     def sense(self) -> None:
         logging.debug(
             f"Bot did not find the leak in cell: {self.bot_location}. Updating probabilites...")
-        self.update_p_no_leak(
+        self.sensory_data = self.update_p_no_leak(
             self.sensory_data, self.bot_location[0], self.bot_location[1])
         self.print_sensory_data(" [after update_p_no_leak()]")
 
@@ -55,19 +55,24 @@ class BotThree(ProbabilisticBot):
         if beep:
             self.beeps += 1
             logging.debug(f"Beep with p_beep: {self.p_beep}")
+            self.sensory_data = self.update_p_beep(self.sensory_data)
         else:
             self.no_beeps += 1
             logging.debug(f"No beep with p_beep: {self.p_beep}")
+            self.sensory_data = self.update_p_no_beep(self.sensory_data)
 
+        self.highest_p_cell = self.get_highest_p_cell(self.sensory_data)
+        self.print_sensory_data(" [after sense()]")
+
+    def get_highest_p_cell(self, sensory_data: List[List[SensoryData]]) -> Tuple[SensoryData]:
         visited = set()
         queue = deque([self.bot_location])
         distance = 1
         highest_p = float('-inf')
-        new_sensory_data = copy.deepcopy(self.sensory_data)
+        highest_p_cell = None
 
         while queue:
             row, col = queue.popleft()
-
             # Mark the cell as visited
             visited.add((row, col))
             # Add the neighboring cells to the queue
@@ -80,21 +85,12 @@ class BotThree(ProbabilisticBot):
                     and self.ship_layout[d_row][d_col] != Cell.CLOSED
                 ):
                     queue.append((d_row, d_col))
-                    if new_sensory_data[d_row][d_col].probability:
-                        new_p_leak_in_d = self.update_p_beep(
-                            beep, distance, d_row, d_col)
-
-                        new_sensory_data[d_row][d_col].probability = new_p_leak_in_d
-                        if new_p_leak_in_d > highest_p:
-                            highest_p = new_sensory_data[d_row][d_col].probability
-                            self.highest_p_cell = (d_row, d_col)
-
+                    if sensory_data[d_row][d_col].probability > highest_p:
+                        highest_p = sensory_data[d_row][d_col].probability
+                        highest_p_cell = (d_row, d_col)
             distance += 1
 
-        logging.debug(
-            f"Highest p cell: {self.highest_p_cell} with p = {highest_p}")
-        self.sensory_data = new_sensory_data
-        self.print_sensory_data(" [after sense()]")
+        return highest_p_cell
 
     def next_step(self) -> Optional[List[int]]:
         # Search for the path from current location to highest p cell (if any)
@@ -173,7 +169,7 @@ class BotThree(ProbabilisticBot):
                                                                        dist[(i, j)][(k, l)] + dist[(k, l)][(m, n)])
         return dist
 
-    def update_p_no_leak(self, sensory_data: List[List[SensoryData]], row: int, col: int) -> None:
+    def update_p_no_leak(self, sensory_data: List[List[SensoryData]], row: int, col: int) -> List[List[SensoryData]]:
         """
         Returns updated sensory data given (row, col) does not contain the leak
 
@@ -187,60 +183,67 @@ class BotThree(ProbabilisticBot):
             = ( P( leak in a ) * 1 ) / P( leak not in d )
             = P( leak in a ) / ( 1 - P ( leak is in d ) )
         """
-
-        leak_not_in_d = 1 - sensory_data[row][col].probability
+        new_sensory_data = copy.deepcopy(sensory_data)
+        leak_not_in_d = 1 - new_sensory_data[row][col].probability
         for r, c in self.open_cells:
             if (r, c) != (row, col):
-                sensory_data[r][c].probability /= leak_not_in_d
+                new_sensory_data[r][c].probability /= leak_not_in_d
 
         logging.debug(
             f"Divided all open cells by a constant factor of: {leak_not_in_d}")
         logging.debug(
-            f"sensory_data[{row}][{col}].probability = {sensory_data[row][col].probability} -> 0.00")
-        sensory_data[row][col].probability = 0.00
+            f"sensory_data[{row}][{col}].probability = {new_sensory_data[row][col].probability} -> 0.00")
+        new_sensory_data[row][col].probability = 0.00
+        return new_sensory_data
 
-    def update_p_beep(self, beep: bool, distance: int, j_row: int, j_col: int) -> float:
-        """Returns the updated probability for a given cell"""
+    def update_p_beep(self, sensory_data: List[List[SensoryData]]):
+        """
+        P( leak is in cell j | we heard a beep while in cell i )
+            = P( leak in cell j ) * e^(-a*(d(i,j)-1)) / P( beep in cell i )
+            = P( leak in cell j ) * e^(-a*(d(i,j)-1)) / sum_k P( leak in k ) *  e^(-a*(d(i,k)-1))
+        """
 
-        p_leak_in_cell_j = self.sensory_data[j_row][j_col].probability
+        sum_k_leak_beep = 0
+        for k_row, k_col in self.open_cells:
+            sum_k_leak_beep += sensory_data[k_row][k_col].probability * \
+                (e**(-self.alpha *
+                     (self.distance[self.bot_location][(k_row, k_col)] - 1)))
 
-        if beep:
-            """
-            P( leak is in cell j | we heard a beep while in cell i )
-                = P( leak in cell j ) * e^(-a*(d(i,j)-1)) / P( beep in cell i )
-                = P( leak in cell j ) * e^(-a*(d(i,j)-1)) / sum_k P( leak in k ) *  e^(-a*(d(i,k)-1))
-            """
-            p_beep = 0
-            for k_row, k_col in self.open_cells:
+        new_sensory_data = copy.deepcopy(sensory_data)
+        for j_row, j_col in self.open_cells:
+            p_leak_in_cell_j = sensory_data[j_row][j_col].probability
+            p_beep_j = e**(-self.alpha *
+                           (self.distance[self.bot_location][(j_row, j_col)] - 1))
+            new_sensory_data[j_row][j_col].probability = (
+                p_leak_in_cell_j * p_beep_j) / sum_k_leak_beep
 
-                p_beep += self.sensory_data[k_row][k_col].probability * \
-                    (e**(-self.alpha *
-                         (self.distance[self.bot_location][(k_row, k_col)] - 1)))
+        return new_sensory_data
 
-            # P( beep in cell i | leak in cell j )
-            p_beep_j = e**(-self.alpha * (distance - 1))
-            # logging.debug(
-            #     f"({p_leak_in_cell_j} * {p_beep_j}) / {p_beep} = {(p_leak_in_cell_j * p_beep_j) / p_beep}")
-            return (p_leak_in_cell_j * p_beep_j) / p_beep
-        else:
-            """
-            For cell i (our current cell): P( leak is in cell i | we heard no beep while in cell i ) = 0
+    def update_p_no_beep(self, sensory_data: List[List[SensoryData]]):
+        """
+        For cell i (our current cell): P( leak is in cell i | we heard no beep while in cell i ) = 0
 
-            For cell j != i : P( leak is in cell j | we heard no beep while in cell i )
-                =  P( leak in cell j ) * ( 1 - e^(-a*(d(i,j) - 1)) ) / [ sum_k P( leak is in k ) * ( 1 - e^(-a*(d(i,k)-1)) ) ]
-            """
+        For cell j != i : P( leak is in cell j | we heard no beep while in cell i )
+            =  P( leak in cell j ) * ( 1 - e^(-a*(d(i,j) - 1)) ) / [ sum_k P( leak is in k ) * ( 1 - e^(-a*(d(i,k)-1)) ) ]
+        """
 
-            # Probability of not recieving a beep at j (a cell at 'distance' away from bot)
-            p_not_beep_j = 1 - e**(-self.alpha * (distance - 1))
+        # Sum over all open cells; P( leak is in k ) * P( we heard no beep while in cell i )
+        sum_k_leak_no_beep = 0
+        for k_row, k_col in self.open_cells:
+            sum_k_leak_no_beep += sensory_data[k_row][k_col].probability * \
+                (1 - (e**(-self.alpha *
+                          (self.distance[self.bot_location][(k_row, k_col)] - 1))))
 
-            # Sum over all open cells; P( leak is in k ) * P( we heard no beep while in cell i )
-            sum_k_leak_no_beep = 0
-            for k_row, k_col in self.open_cells:
+        new_sensory_data = copy.deepcopy(sensory_data)
+        for j_row, j_col in self.open_cells:
+            if (j_row, j_col) == self.bot_location:
+                continue
 
-                sum_k_leak_no_beep += self.sensory_data[k_row][k_col].probability * \
-                    (1 - (e**(-self.alpha *
-                              (self.distance[self.bot_location][(k_row, k_col)] - 1))))
+            p_leak_in_cell_j = sensory_data[j_row][j_col].probability
+            p_beep_j = e**(-self.alpha *
+                           (self.distance[self.bot_location][(j_row, j_col)] - 1))
+            p_not_beep_j = 1 - p_beep_j
+            new_sensory_data[j_row][j_col].probability = (
+                p_leak_in_cell_j * p_not_beep_j) / sum_k_leak_no_beep
 
-                # logging.debug(
-                #     f"self.sensory_data[{k_row}][{k_col}].probability * (e**(-{self.alpha} *  ({self.distance[self.bot_location][(k_row, k_col)] - 1}))) = {self.sensory_data[k_row][k_col].probability} * 1- e^(-{self.alpha} * {self.distance[self.bot_location][(k_row, k_col)]} - 1) = {self.sensory_data[k_row][k_col].probability * (1 - (e**(-self.alpha * (self.distance[self.bot_location][(k_row, k_col)] - 1))))}")
-            return (p_leak_in_cell_j * p_not_beep_j) / sum_k_leak_no_beep
+        return new_sensory_data
