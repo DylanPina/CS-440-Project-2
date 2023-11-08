@@ -1,4 +1,5 @@
 import logging
+import time
 from ship import Ship
 from config import INITIAL_SHIP_LAYOUT_OUTPUT_FILE, SHIP_LAYOUT_TRAVERSAL_OUTPUT_FILE
 from bots import Bot
@@ -27,8 +28,10 @@ class Game:
         self.ship.add_bot(self.bot)
         self.ship.place_leak()
 
-        print_layout(self.ship.layout, file=INITIAL_SHIP_LAYOUT_OUTPUT_FILE, title="--Initial State--")
+        print_layout(
+            self.ship.layout, file=INITIAL_SHIP_LAYOUT_OUTPUT_FILE, title="--Initial State--")
 
+        start_time = time.time()
         timestep = 0
         while timestep < 100000:
             self.bot.action(timestep)
@@ -37,7 +40,9 @@ class Game:
                 break
             timestep += 1
 
-        if output_traversal:
+        logging.info(f"Finished in: {(time.time() - start_time) * 1000} ms")
+
+        if output_traversal: 
             print_layout(
                 self.bot.get_traversal(),
                 file=SHIP_LAYOUT_TRAVERSAL_OUTPUT_FILE,
