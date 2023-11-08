@@ -35,6 +35,7 @@ class Ship:
         layout = [[Cell.CLOSED] * self.D for _ in range(self.D)]
         self.closed_cells = [(r, c) for r in range(self.D)
                              for c in range(self.D)]
+        logging.info(f"Ship dimensions: {self.D} x {self.D}")
         return layout
 
     def open_initial_cell(self) -> None:

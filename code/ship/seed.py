@@ -1,4 +1,5 @@
 import csv
+import logging
 from config import Cell
 from typing import List
 
@@ -12,13 +13,15 @@ class Seed:
         self.bot_location = None
         self.leak_location = None
         self.get_cells()
+        logging.info(f"Ship dimensions: {self.D} x {self.D}")
 
     def read_from_file(self, file: str) -> List[List[int]]:
         """
         Reads the string representation of a ship layout from the file location given by
         'file' and returns a functional ship layout.
-        """
+    """
 
+        logging.info(f"Using seed: {file}")
         layout = []
         reader = csv.reader(open(file))
         for row in reader:

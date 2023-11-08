@@ -98,6 +98,9 @@ class ProbabilisticBot(Bot, ABC):
     def print_sensory_data(self, msg: str = None) -> None:
         """Outputs the current sensory data to the log"""
 
+        if not logging.DEBUG >= logging.root.level:
+            return
+
         precision = 5
         max_length = precision + 2
         sensory_output = f"\n--Sensory Data{ msg if msg else ''}--\n"
@@ -123,6 +126,9 @@ class ProbabilisticBot(Bot, ABC):
 
     def print_distances(self) -> None:
         """Prints the distance map (for debugging purposes)"""
+
+        if not logging.DEBUG >= logging.root.level:
+            return
 
         output = "\n--Distance Map (Floyd-Warshall Algorithm)--"
         for key, value in self.distance.items():

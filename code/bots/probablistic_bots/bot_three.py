@@ -3,7 +3,7 @@ import random
 import copy
 from .probabilistic_bot import ProbabilisticBot
 from typing import Tuple, List, Optional
-from config import Cell
+from config import Cell, Bots
 from collections import deque, defaultdict
 from math import e
 from .sensory_data import SensoryData
@@ -16,8 +16,12 @@ class BotThree(ProbabilisticBot):
     def __init__(self, alpha: int) -> None:
         super().__init__(alpha)
         # (row, col)[target_row, col] -> distance from (row, col) to (target_row, target_col)
+        self.variant = Bots.BOT3
         self.distance = {}
         self.p_beep = None  # Probability of beep occuring at current cell in current timestep
+
+        logging.info(f"Bot variant: {self.variant}")
+        logging.info(f"Alpha: {self.alpha}")
 
     def setup(self) -> None:
         self.sensory_data = self.initialize_sensory_data()
@@ -203,6 +207,7 @@ class BotThree(ProbabilisticBot):
             = P( leak in cell j ) * e^(-a*(d(i,j)-1)) / sum_k P( leak in k ) *  e^(-a*(d(i,k)-1))
         """
 
+        # Sum over all open cells; P( leak in k ) *  P( we heard a beep while in cell i )
         sum_k_leak_beep = 0
         for k_row, k_col in self.open_cells:
             sum_k_leak_beep += sensory_data[k_row][k_col].probability * \

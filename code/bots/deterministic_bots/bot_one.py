@@ -28,6 +28,9 @@ class BotOne(DeterministicBot):
         super().__init__(k)
         self.variant = Bots.BOT1
 
+        logging.info(f"Bot variant: {self.variant}")
+        logging.info(f"K value: {self.k}")
+
     def setup(self) -> None:
         self.sensory_data = self.initialize_sensory_data()
 
@@ -36,7 +39,7 @@ class BotOne(DeterministicBot):
             self.sense()
         elif timestep % 2 == 1:
             self.move()
-            
+
     def move(self) -> Tuple[int]:
         # Move towards the closest possible leak cell
         self.bot_location = self.next_step()
@@ -74,13 +77,15 @@ class BotOne(DeterministicBot):
 
     def next_step(self) -> Optional[List[int]]:
         # Search for the closest possible leak cell (if any)
-        closest_possible_leak_cell = self.closest_possible_leak_cell(SensoryData.POSSIBLE_LEAK)
+        closest_possible_leak_cell = self.closest_possible_leak_cell(
+            SensoryData.POSSIBLE_LEAK)
         # If we can't reach a possible leak from the current location we need to backtrack
         if not closest_possible_leak_cell:
             logging.debug("Backtrack!")
             return self.backtrack()
 
-        logging.debug(f"Closest possible leak cell: {closest_possible_leak_cell[0]}")
+        logging.debug(
+            f"Closest possible leak cell: {closest_possible_leak_cell[0]}")
         next_step = closest_possible_leak_cell[1]
         self.parent[next_step] = self.bot_location
         return next_step

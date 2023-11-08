@@ -16,6 +16,9 @@ class BotTwo(DeterministicBot):
         self.variant = Bots.BOT2
         self.leak_found = False
 
+        logging.info(f"Bot variant: {self.variant}")
+        logging.info(f"K value: {self.k}")
+
     def setup(self) -> None:
         self.sensory_data = self.initialize_sensory_data()
 
@@ -74,14 +77,15 @@ class BotTwo(DeterministicBot):
         # If we can't find any cells marked in proximity of the leak, resort to cells marked as possible leak cells
         else:
             closest_possible_leak_cell = self.closest_possible_leak_cell(
-            SensoryData.POSSIBLE_LEAK
+                SensoryData.POSSIBLE_LEAK
             )
         # If we can't reach a possible leak from the current location we need to backtrack to a previous cell
         if not closest_possible_leak_cell:
             logging.debug("Backtrack!")
             return self.backtrack()
 
-        logging.debug(f"Closest {'proximity' if self.leak_found else 'possible leak'} cell: {closest_possible_leak_cell[0]}")
+        logging.debug(
+            f"Closest {'proximity' if self.leak_found else 'possible leak'} cell: {closest_possible_leak_cell[0]}")
         next_step = closest_possible_leak_cell[1]
         self.parent[next_step] = self.bot_location
         return next_step
