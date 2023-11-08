@@ -1,10 +1,10 @@
 import logging
-from .seed import Seed
+from .seeds import Seed
 from typing import List
 from config import Cell
 from random import randint, choice
 from bots import Bot
-from bots.deterministic_bots import DeterministicBot, BotFive
+from bots.deterministic_bots import DeterministicBot, BotFive, BotSix
 
 
 class Ship:
@@ -22,7 +22,6 @@ class Ship:
             self.layout = seed.layout
             self.closed_cells = seed.closed_cells
             self.open_cells = seed.open_cells
-            self.leak_location = seed.leak_location
         else:
             self.layout = self.create_matrix()
             self.open_initial_cell()
@@ -155,7 +154,7 @@ class Ship:
         """Places a leak based on the type of bot"""
 
         if isinstance(self.bot, DeterministicBot):
-            if isinstance(self.bot, BotFive):
+            if isinstance(self.bot, BotFive) or isinstance(self.bot, BotSix):
                 logging.debug("Placing leaks for deterministic bot")
                 self.place_multiple_leaks_deterministic()
             else:

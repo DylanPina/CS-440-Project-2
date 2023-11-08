@@ -43,8 +43,8 @@ class Game:
             timestep += 1
 
         if not leak_found:
-            logging.info(f"Leak not found in {timestep + 1}")
-        logging.info(f"Finished in: {(time.time() - start_time) * 1000}ms")
+            logging.info(f"Bot has found the leak(s) in: {timestep + 1} timesteps")
+        logging.info(f"Finished in: {(time.time() - start_time) * 1000} ms")
 
         if output_traversal:
             print_layout(

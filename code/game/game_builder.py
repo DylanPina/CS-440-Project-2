@@ -1,9 +1,9 @@
 from game import Game
 from ship import Ship
-from bots.deterministic_bots import BotOne, BotTwo, BotFive
+from bots.deterministic_bots import BotOne, BotTwo, BotFive, BotSix
 from bots.probablistic_bots import BotThree, BotFour
 from config import Bots
-from ship import Seed
+from ship.seeds import Seed
 
 
 class GameBuilder():
@@ -22,6 +22,8 @@ class GameBuilder():
                 self.game.set_bot(BotFour(alpha))
             case Bots.BOT5:
                 self.game.set_bot(BotFive(k))
+            case Bots.BOT6:
+                self.game.set_bot(BotSix(k))
         return self
 
     def add_ship(self, D: int, seed: Seed = None):
