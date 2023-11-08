@@ -31,18 +31,22 @@ class Game:
         print_layout(
             self.ship.layout, file=INITIAL_SHIP_LAYOUT_OUTPUT_FILE, title="--Initial State--")
 
-        start_time = time.time()
+        leak_found = False
         timestep = 0
-        while timestep < 100000:
+        start_time = time.time()
+        while timestep < 10000000:
             self.bot.action(timestep)
             if self.bot_found_leak():
-                logging.info(f"Bot found the leak in {timestep} timesteps!")
+                self.bot.print_stats(timestep)
+                leak_found = True
                 break
             timestep += 1
 
-        logging.info(f"Finished in: {(time.time() - start_time) * 1000} ms")
+        if not leak_found:
+            logging.info(f"Leak not found in {timestep}")
+        logging.info(f"Finished in: {(time.time() - start_time) * 1000}ms")
 
-        if output_traversal: 
+        if output_traversal:
             print_layout(
                 self.bot.get_traversal(),
                 file=SHIP_LAYOUT_TRAVERSAL_OUTPUT_FILE,

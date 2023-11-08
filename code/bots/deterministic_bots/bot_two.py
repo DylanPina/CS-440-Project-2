@@ -25,8 +25,10 @@ class BotTwo(DeterministicBot):
     def action(self, timestep: int) -> None:
         if self.leak_found or timestep % 2:
             self.move()
+            self.moves += 1
         else:
             self.sense()
+            self.senses += 1
 
     def move(self) -> Tuple[int]:
         # Move towards the closest possible leak cell

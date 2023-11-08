@@ -20,6 +20,8 @@ class DeterministicBot(Bot, ABC):
         self.sensory_data = List[SensoryData]
         self.traversal = []
         self.parent = {}
+        self.moves = 0
+        self.senses = 0
 
     def initialize_sensory_data(self) -> List[List[SensoryData]]:
         """Returns a matrix representing the bot's initial sensory data"""
@@ -98,5 +100,9 @@ class DeterministicBot(Bot, ABC):
             sensory_output = sensory_output.rsplit(", ", 1)[0]
             if row != len(self.ship_layout) - 1:
                 sensory_output += "\n"
-                
+
         logging.debug(sensory_output)
+
+    def print_stats(self, timestep: int) -> None:
+        logging.info(f"Bot has found the leak at timestep: {timestep}")
+        logging.info(f"Moves: {self.moves}")

@@ -2,8 +2,8 @@ import logging, argparse
 from enum import Enum
 from typing import List
 
-INITIAL_SHIP_LAYOUT_OUTPUT_FILE = "output/initial_ship_layout.csv" # Output file for ship layout
-SHIP_LAYOUT_TRAVERSAL_OUTPUT_FILE = "output/ship_layout_traversal.csv" # Output file for the traversal
+INITIAL_SHIP_LAYOUT_OUTPUT_FILE = "output/initial_ship_layout.log" # Output file for ship layout
+SHIP_LAYOUT_TRAVERSAL_OUTPUT_FILE = "output/ship_layout_traversal.log" # Output file for the traversal
 
 class Cell(Enum):
     """Enum type for a ship layout cell"""

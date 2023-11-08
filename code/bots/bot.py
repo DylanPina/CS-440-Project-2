@@ -45,7 +45,7 @@ class Bot(ABC):
 
         pass
 
-    @abstractmethod 
+    @abstractmethod
     def initialize_sensory_data(self) -> List[List[any]]:
         """Returns a matrix representing the bot's initial sensory data"""
 
@@ -72,5 +72,11 @@ class Bot(ABC):
     @abstractmethod
     def sense(self) -> None:
         """Updates sensory data about the environment"""
+
+        pass
+
+    @abstractmethod
+    def print_stats(self, timesteps: int) -> None:
+        """Prints the bots final stats after it has found the leak"""
 
         pass
