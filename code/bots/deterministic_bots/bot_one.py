@@ -27,6 +27,7 @@ class BotOne(DeterministicBot):
     def __init__(self, k: int) -> None:
         super().__init__(k)
         self.variant = Bots.BOT1
+        self.leak_plugged = False
 
         logging.info(f"Bot variant: {self.variant}")
         logging.info(f"K value: {self.k}")
@@ -51,10 +52,9 @@ class BotOne(DeterministicBot):
         # Check if move brought us to the leak cell
         r, c = self.bot_location
         if self.ship_layout[r][c] == Cell.LEAK:
-            self.sensory_data[r][c] = SensoryData.LEAK
             logging.debug("Bot has sensed the leak in its current cell")
-        else:
-            self.sensory_data[r][c] = SensoryData.NO_LEAK
+            self.leak_plugged = True
+
         return self.bot_location
 
     def sense(self) -> None:
@@ -102,3 +102,6 @@ class BotOne(DeterministicBot):
         self.sensory_data[r][c] = SensoryData.INVALID_CELL
         self.traversal.pop()
         return self.parent[self.bot_location]
+
+    def plugged_leaks(self) -> bool:
+        return self.leak_plugged

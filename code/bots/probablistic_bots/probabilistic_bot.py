@@ -71,6 +71,7 @@ class ProbabilisticBot(Bot, ABC):
         r, c = self.bot_location
         if self.ship_layout[r][c] == Cell.LEAK:
             logging.debug(f"Bot has reached the leak!")
+            self.leak_plugged = True
         return self.bot_location
 
     def sense(self) -> None:
@@ -226,6 +227,9 @@ class ProbabilisticBot(Bot, ABC):
 
         # new_sensory_data = copy.deepcopy(self.sensory_data)
         for j_row, j_col in self.open_cells:
+            if (j_row, j_col) == self.bot_location:
+                continue
+
             p_leak_in_cell_j = self.sensory_data[j_row][j_col].probability
             p_beep_j = e**(-self.alpha *
                            (self.distance[self.bot_location][(j_row, j_col)] - 1))

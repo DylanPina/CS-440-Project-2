@@ -15,6 +15,7 @@ class BotThree(ProbabilisticBot):
     def __init__(self, alpha: int) -> None:
         super().__init__(alpha)
         self.variant = Bots.BOT3
+        self.leak_plugged = False
 
         logging.info(f"Bot variant: {self.variant}")
         logging.info(f"Alpha: {self.alpha}")
@@ -27,3 +28,6 @@ class BotThree(ProbabilisticBot):
         else:
             self.sense()
             self.senses += 1
+
+    def plugged_leaks(self) -> bool:
+        return self.leak_plugged

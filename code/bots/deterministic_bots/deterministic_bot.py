@@ -87,7 +87,10 @@ class DeterministicBot(Bot, ABC):
         return None  # Return None if no cell is found
 
     def print_sensory_data(self) -> None:
-        """Prints the current sensory data to the console"""
+        """Outputs the current sensory data to the log"""
+
+        if not logging.DEBUG >= logging.root.level:
+            return
 
         sensory_output = "\n--Sensory Data--\n"
         for row in range(len(self.sensory_data)):
@@ -106,3 +109,4 @@ class DeterministicBot(Bot, ABC):
     def print_stats(self, timestep: int) -> None:
         logging.info(f"Bot has found the leak at timestep: {timestep}")
         logging.info(f"Moves: {self.moves}")
+        logging.info(f"Senses: {self.senses}")

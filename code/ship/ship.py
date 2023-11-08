@@ -4,7 +4,7 @@ from typing import List
 from config import Cell
 from random import randint, choice
 from bots import Bot
-from bots.deterministic_bots import DeterministicBot
+from bots.deterministic_bots import DeterministicBot, BotFive
 
 
 class Ship:
@@ -16,6 +16,7 @@ class Ship:
         self.closed_cells = set()
         self.open_cells = set()
         self.leak_location = None
+        self.leak_locations = set()
 
         if seed:
             self.layout = seed.layout
@@ -154,8 +155,12 @@ class Ship:
         """Places a leak based on the type of bot"""
 
         if isinstance(self.bot, DeterministicBot):
-            logging.debug("Placing leak for deterministic bot")
-            self.place_leak_deterministic()
+            if isinstance(self.bot, BotFive):
+                logging.debug("Placing leaks for deterministic bot")
+                self.place_multiple_leaks_deterministic()
+            else:
+                logging.debug("Placing leak for deterministic bot")
+                self.place_leak_deterministic()
         else:
             logging.debug("Placing leak for probabilistic bot")
             self.place_leak_probabilistic()
@@ -192,7 +197,57 @@ class Ship:
         self.leak_location = (r, c)
         self.bot.leak_location = (r, c)
 
+    def place_multiple_leaks_deterministic(self) -> None:
+        """
+        Places two atmosphere leaks on random open cells out of proximity of the bot's detection radius
+        """
+
+        if self.seed:
+            leaks = self.seed.leak_locations
+            for r, c in leaks:
+                logging.info(f"Atmosphere leak started at ({r}, {c})")
+                self.leak_locations.append((r, c))
+                self.bot.leak_locations.append((r, c))
+        else:
+            for _ in range(2):
+                bot_row, bot_col = self.bot.bot_location
+                restricted = set()
+
+                top, bottom = max(
+                    0, bot_row - self.bot.k), min(self.D, bot_row + self.bot.k + 1)
+                left, right = max(
+                    0, bot_col - self.bot.k), min(self.D, bot_col + self.bot.k + 1)
+                for row in range(top, bottom):
+                    for col in range(left, right):
+                        restricted.add((row, col))
+
+                r, c = choice(list(self.open_cells))
+                while (r, c) in restricted:
+                    r, c = choice(list(self.open_cells))
+
+                self.open_cells.remove((r, c))
+                self.layout[r][c] = Cell.LEAK
+
+            logging.info(f"Atmosphere leak started at ({r}, {c})")
+            self.leak_locations.add((r, c))
+            self.bot.leak_locations.add((r, c))
+
     def place_leak_probabilistic(self) -> None:
+        """Places an atmosphere leak on a random open cell and returns location of leak"""
+
+        r, c = None, None
+        if self.seed:
+            r, c = self.seed.leak_location
+        else:
+            r, c = choice(list(self.open_cells))
+            self.open_cells.remove((r, c))
+            self.layout[r][c] = Cell.LEAK
+
+        logging.info(f"Atmosphere leak started at ({r}, {c})")
+        self.leak_location = (r, c)
+        self.bot.leak_location = (r, c)
+
+    def place_multiple_leaks_probabilistic(self) -> None:
         """Places an atmosphere leak on a random open cell and returns location of leak"""
 
         r, c = None, None

@@ -34,16 +34,16 @@ class Game:
         leak_found = False
         timestep = 0
         start_time = time.time()
-        while timestep < 10000000:
+        while timestep < 100000:
             self.bot.action(timestep)
-            if self.bot_found_leak():
-                self.bot.print_stats(timestep)
+            if self.bot.plugged_leaks():
+                self.bot.print_stats(timestep + 1)
                 leak_found = True
                 break
             timestep += 1
 
         if not leak_found:
-            logging.info(f"Leak not found in {timestep}")
+            logging.info(f"Leak not found in {timestep + 1}")
         logging.info(f"Finished in: {(time.time() - start_time) * 1000}ms")
 
         if output_traversal:

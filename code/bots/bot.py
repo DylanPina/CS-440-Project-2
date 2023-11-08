@@ -76,6 +76,12 @@ class Bot(ABC):
         pass
 
     @abstractmethod
+    def plugged_leaks(self) -> bool:
+        """Returns True if leak/leaks are plugged"""
+
+        pass
+
+    @abstractmethod
     def print_stats(self, timesteps: int) -> None:
         """Prints the bots final stats after it has found the leak"""
 
