@@ -3,22 +3,20 @@ import random
 from .probabilistic_bot import ProbabilisticBot
 from typing import Tuple
 from config import Bots, Cell
+from .sensory_data import SensoryData
 from math import e
 
 
-class BotThree(ProbabilisticBot):
+class BotSeven(ProbabilisticBot):
     """
-    All cells (other than the bot's initial cell) start with equal probability of containing the leak. The nearer the bot is to the leak, the more likely it is to receive a beep. Bot 3 proceeds in the following way:
-
-        - At any time, the bot is going to move to the cell that has the highest probability of containing the leak (breaking ties first by distance from the bot, then at random).
-        - After entering any cell, if the cell does not contain a leak, the bot will take the sense action. Based on the results, it updates the probability of containing the leak for each cell.
-        - After the beliefs are updated, this repeats, the bot proceeding to the cell that as the highest probability of containing the leak (breaking ties first by distance from the bot, then at random).
+    Bot 7 is exactly Bot 3, but removes the first leak once its cell is entered, anc continues until the second leak is also identified and plugged.
     """
 
     def __init__(self, alpha: int) -> None:
         super().__init__(alpha)
-        self.variant = Bots.BOT3
-        self.leak_plugged = False
+        self.variant = Bots.BOT7
+        self.leaks_plugged = 0
+        self.leak_locations = set()
 
         logging.info(f"Bot variant: {self.variant}")
         logging.info(f"Alpha: {self.alpha}")
@@ -42,8 +40,11 @@ class BotThree(ProbabilisticBot):
         # Check if move brought us to the leak cell
         r, c = self.bot_location
         if self.ship_layout[r][c] == Cell.LEAK:
-            logging.debug(f"Bot has reached the leak!")
-            self.leak_plugged = True
+            logging.debug(f"Bot has found a leak in its current cell")
+            self.leaks_plugged += 1
+            logging.debug(f"Leaks remaining: {2 - self.leaks_plugged}")
+
+        self.sensory_data[r][c].probability = 0.00
         return self.bot_location
 
     def beep(self) -> Tuple[bool, float]:
@@ -54,10 +55,14 @@ class BotThree(ProbabilisticBot):
             = sum_k P( leak in k ) *  e^(-a*(d(i,k)-1))
         """
 
-        p_beep = e**(-self.alpha *
-                     (self.distance[self.bot_location][self.leak_location] - 1))
+        distance = float("inf")
+        for l in self.leak_locations:
+            if (self.distance[self.bot_location][l] - 1) < distance:
+                distance = self.distance[self.bot_location][l] - 1
+
+        p_beep = e**(-self.alpha * (distance))
 
         return (random.random() < p_beep, p_beep)
 
     def plugged_leaks(self) -> bool:
-        return self.leak_plugged
+        return self.leaks_plugged == 2
