@@ -42,6 +42,8 @@ class BotSeven(ProbabilisticBot):
         if self.ship_layout[r][c] == Cell.LEAK:
             logging.debug(f"Bot has found a leak in its current cell")
             self.leaks_plugged += 1
+            self.leak_locations.remove((r, c))
+            self.ship_layout[r][c] = Cell.OPEN
             logging.debug(f"Leaks remaining: {2 - self.leaks_plugged}")
 
         self.sensory_data[r][c].probability = 0.00
