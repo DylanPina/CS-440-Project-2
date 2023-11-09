@@ -54,31 +54,6 @@ class GameResult:
         self.run_time_ms = run_time_ms
 
 
-def read_ship_layout_from_file(self, file: str) -> List[List[Cell]]:
-    """
-    Reads the string representation of a ship layout from the file location given by
-    'file' and returns a functional ship layout.
-    """
-
-    logging.info(f"Using seed: {file}")
-    layout = []
-    reader = csv.reader(open(file))
-    for row in reader:
-        vals = [i.strip() for i in row]
-        enums = []
-        for val in vals:
-            if val == str(Cell.CLOSED.value):
-                enums.append(Cell.CLOSED)
-            elif val == str(Cell.OPEN.value):
-                enums.append(Cell.OPEN)
-            elif val == str(Cell.BOT.value):
-                enums.append(Cell.BOT)
-            elif val == str(Cell.LEAK.value):
-                enums.append(Cell.LEAK)
-        layout.append(enums)
-    return layout
-
-
 def init_logging() -> None:
     """Initializes logging capabilities for entire applicaiton"""
 

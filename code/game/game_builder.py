@@ -3,7 +3,7 @@ from ship import Ship
 from bots.deterministic_bots import BotOne, BotTwo, BotFive, BotSix
 from bots.probablistic_bots import BotThree, BotFour, BotSeven
 from config import Bots
-from ship.seeds import Seed
+from ship import Seed
 
 
 class GameBuilder():

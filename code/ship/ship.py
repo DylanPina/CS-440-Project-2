@@ -1,5 +1,5 @@
 import logging
-from .seeds import Seed
+from .seed import Seed
 from typing import List
 from config import Cell
 from random import randint, choice
@@ -260,8 +260,10 @@ class Ship:
 
         r, c = None, None
         if self.seed:
-            r, c = self.seed.leak_locations
-
+            for r, c in self.seed.leak_locations:
+                logging.info(f"Atmosphere leak started at ({r}, {c})")
+                self.leak_locations.add((r, c))
+                self.bot.leak_locations.add((r, c))
         else:
             for _ in range(2):
                 r, c = choice(list(self.open_cells))

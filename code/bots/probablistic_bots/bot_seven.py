@@ -3,7 +3,6 @@ import random
 from .probabilistic_bot import ProbabilisticBot
 from typing import Tuple
 from config import Bots, Cell
-from .sensory_data import SensoryData
 from math import e
 
 
