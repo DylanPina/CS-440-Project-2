@@ -27,7 +27,6 @@ class BotThree(ProbabilisticBot):
         logging.debug(f"Timestep: {timestep}")
         if timestep % 2:
             self.move()
-            self.print_sensory_data(" move ")
             self.moves += 1
         else:
             self.sense()
