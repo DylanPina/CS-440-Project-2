@@ -1,5 +1,4 @@
 import logging
-import random
 from abc import ABC
 from typing import List, Optional, Tuple
 from config import Cell
@@ -24,6 +23,7 @@ class ProbabilisticBot(Bot, ABC):
         self.parent = {}
         self.open_cells = set()
         self.highest_p_cell = None
+        self.path_to_highest_p_cell = deque()
         self.beeps = 0
         self.no_beeps = 0
         self.p_beep = 0
@@ -111,10 +111,10 @@ class ProbabilisticBot(Bot, ABC):
         return highest_p_cell
 
     def next_step(self) -> Optional[List[int]]:
-        # Search for the path from current location to highest p cell (if any)
-        path_to_highest_p_cell = self.path_to_highest_p_cell()
+        if not self.path_to_highest_p_cell:
+            self.path_to_highest_p_cell = self.get_path_to_highest_p_cell()
 
-        next_step = path_to_highest_p_cell[1]
+        next_step = self.path_to_highest_p_cell.popleft()
         self.parent[next_step] = self.bot_location
         return next_step
 
@@ -235,15 +235,13 @@ class ProbabilisticBot(Bot, ABC):
             self.sensory_data[j_row][j_col].probability = (
                 p_leak_in_cell_j * p_not_beep_j) / sum_k_leak_no_beep
 
-    def path_to_highest_p_cell(
-        self
-    ) -> Optional[Tuple[List[List[int]]]]:
+    def get_path_to_highest_p_cell(self) -> deque[Tuple[int]]:
         """Returns the closest possible leak cell using BFS from bot's current location"""
 
         visited = set()
         queue = deque([self.bot_location])
         parent = {self.bot_location: self.bot_location}
-        shortest_path = []
+        shortest_path = deque()
 
         while queue:
             row, col = queue.popleft()
@@ -271,12 +269,11 @@ class ProbabilisticBot(Bot, ABC):
             while shortest_path[-1] != self.bot_location:
                 r, c = parent[shortest_path[-1]]
                 shortest_path.append((r, c))
+            shortest_path.reverse()
             logging.debug(
-                f"Path to highest p cell: {shortest_path[::-1]}")
-            return (
-                shortest_path[0],
-                shortest_path[-2],
-            )  # (highest p cell, next step to get there)
+                f"Path to highest p cell: {shortest_path}")
+            # (highest p cell, next step to get there)
+            return shortest_path
 
         logging.debug("Path to highest p cell: None")
         return None  # Return None if no cell is found

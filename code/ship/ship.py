@@ -241,11 +241,7 @@ class Ship:
 
         r, c = None, None
         if self.seed:
-            leaks = self.seed.leak_location
-            for r, c in leaks:
-                logging.info(f"Atmosphere leak started at ({r}, {c})")
-                self.leak_locations.append((r, c))
-                self.bot.leak_locations.append((r, c))
+            r, c = self.seed.leak_location
         else:
             r, c = choice(list(self.open_cells))
             self.open_cells.remove((r, c))
