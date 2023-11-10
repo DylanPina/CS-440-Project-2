@@ -5,7 +5,7 @@ from config import Cell
 from random import randint, choice
 from bots import Bot
 from bots.deterministic_bots import DeterministicBot, BotFive, BotSix
-from bots.probablistic_bots import ProbabilisticBot, BotSeven
+from bots.probablistic_bots import BotSeven, BotEight
 
 
 class Ship:
@@ -17,7 +17,7 @@ class Ship:
         self.closed_cells = set()
         self.open_cells = set()
         self.leak_location = None
-        self.leak_locations = set()
+        self.leak_locations = []
 
         if seed:
             self.layout = seed.layout
@@ -162,7 +162,7 @@ class Ship:
                 logging.debug("Placing leak for deterministic bot")
                 self.place_leak_deterministic()
         else:
-            if isinstance(self.bot, BotSeven):
+            if isinstance(self.bot, BotSeven) or isinstance(self.bot, BotEight):
                 logging.debug("Placing leaks for probabilistic bot")
                 self.place_multiple_leaks_probabilistic()
             else:
@@ -233,8 +233,8 @@ class Ship:
                 self.layout[r][c] = Cell.LEAK
 
                 logging.info(f"Atmosphere leak started at ({r}, {c})")
-                self.leak_locations.add((r, c))
-                self.bot.leak_locations.add((r, c))
+                self.leak_locations.append((r, c))
+                self.bot.leak_locations.append((r, c))
 
     def place_leak_probabilistic(self) -> None:
         """Places an atmosphere leak on a random open cell and returns location of leak"""
@@ -258,8 +258,8 @@ class Ship:
         if self.seed:
             for r, c in self.seed.leak_locations:
                 logging.info(f"Atmosphere leak started at ({r}, {c})")
-                self.leak_locations.add((r, c))
-                self.bot.leak_locations.add((r, c))
+                self.leak_locations.append((r, c))
+                self.bot.leak_locations.append((r, c))
         else:
             for _ in range(2):
                 r, c = choice(list(self.open_cells))
@@ -267,5 +267,5 @@ class Ship:
                 self.layout[r][c] = Cell.LEAK
 
                 logging.info(f"Atmosphere leak started at ({r}, {c})")
-                self.leak_locations.add((r, c))
-                self.bot.leak_locations.add((r, c))
+                self.leak_locations.append((r, c))
+                self.bot.leak_locations.append((r, c))

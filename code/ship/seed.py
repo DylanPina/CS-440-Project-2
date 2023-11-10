@@ -14,7 +14,7 @@ class Seed():
         self.multi_leaks = multi_leaks
 
         if self.multi_leaks:
-            self.leak_locations = set()
+            self.leak_locations = []
         else:
             self.leak_location = None
 

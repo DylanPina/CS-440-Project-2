@@ -1,5 +1,6 @@
 import logging
 import random
+import copy
 from .probabilistic_bot import ProbabilisticBot
 from typing import Tuple
 from config import Bots, Cell
@@ -15,7 +16,7 @@ class BotEight(ProbabilisticBot):
         super().__init__(alpha)
         self.variant = Bots.BOT8
         self.leaks_plugged = 0
-        self.leak_locations = set()
+        self.leak_locations = []
 
         logging.info(f"Bot variant: {self.variant}")
         logging.info(f"Alpha: {self.alpha}")
@@ -53,11 +54,14 @@ class BotEight(ProbabilisticBot):
         Returns whether a beep occured and probability what the probability of the beep occuring was
         """
 
-        leak_one, leak_two = self.leak_locations
+        leak_one = self.leak_locations[0]
+        leak_two = self.leak_locations[1] if len(
+            self.leak_locations) == 2 else None
+
         p_beep_one = e**(-self.alpha *
                          (self.distance[self.bot_location][leak_one]) - 1)
         p_beep_two = e**(-self.alpha *
-                         (self.distance[self.bot_location][leak_two]) - 1)
+                         (self.distance[self.bot_location][leak_two]) - 1) if leak_two else 0
 
         return ((random.random() < p_beep_one) or (random.random() < p_beep_two), p_beep_one + p_beep_two)
 
@@ -99,71 +103,158 @@ class BotEight(ProbabilisticBot):
             = P( leak in cell j ) * e^(-a*(d(i,j)-1)) / sum_k P( leak in k ) *  e^(-a*(d(i,k)-1))
 
         --new shit--
-        P( leak in cell j and leak in cell y | we heard a beep while in cell i )
-            = P( leak in cell j and leak in cell y | beep in cell i ) / P ( beep in cell i)
-            = P( leak in cell j | beep in cell i ) * P( leak in cell y | beep in cell i ) / P( beep in cell i )
+        P( leak in cell i and leak in cell j | beep in cell k )
+            = P( beep in k | leak in cell i and leak in cell j ) * P( leak in cell i and leak in cell j ) / P( beep in cell k )
 
-            P( leak in cell j | beep in cell i )
-                = P( beep in cell i | leak in cell j ) /  P( beep in cell i )
-                = e^(-a*(d(i,j) - 1)) / sum_k P( leak in k ) *  e^(-a*(d(i,k)-1)) * for all k' != k P( leak in k' ) *  e^(-a*(d(i,k')-1))
+            P( beep in k | leak in cell i and leak in cell j )
+                = e^(- a * (d(k,i) - 1)) + e^ - a * (d(k,j) - 1)) - e^ - a * (d(k,i) - 1)) * e^ - a * ( d(k,j) - 1) )
 
-            P( leak in cell y | beep in cell i )
-                = P( beep in cell i | leak in cell y ) /  P( beep in cell i )
-                = e^(-a*(d(i,y) - 1)) / sum_k P( leak in k ) *  e^(-a*(d(i,k)-1)) * for all k' != k P( leak in k' ) *  e^(-a*(d(i,k')-1))
+            P( leak in cell i and leak in cell j )
+                = P( leak in cell i ) * P( leak in cell j )
 
-        P( beep in cell i ) = sum_k P( leak in k AND beep in cell i ) * for all k' != k P( leak in k AND beep in cell i )
-            = sum_k P( leak in k ) * P( beep in i | leak in k ) * for all k' != k P( leak in k' AND beep in cell i )
-            = sum_k P( leak in k ) *  e^(-a*(d(i,k)-1)) * for all k' != k P( leak in k' AND beep in cell i )
-            = sum_k P( leak in k ) *  e^(-a*(d(i,k)-1)) * for all k' != k P( leak in k' ) *  e^(-a*(d(i,k')-1))
+            P( beep in cell k )
+                = sum { cell l, cell m} P( leak in cell l and cell m AND beep in cell k)
+                = sum { cell l, cell m} P( leak in cell l ) * P( leak in cell m ) * P( beep in cell k | leak in cell m and leak in cell l)
+
+                    P( beep in cell k | leak in cell m and leak in cell l )
+                        = e^(- a * (d(k,m) - 1)) + e^ - a * (d(k,l) - 1)) - e^ - a * (d(k,m) - 1)) * e^ - a * ( d(k,l) - 1) )
+
+                = sum { cell l, cell m} P( leak in cell l ) * P( leak in cell m ) 
+                    * e^(- a * (d(k,m) - 1)) + e^ - a * (d(k,l) - 1)) - e^ - a * (d(k,m) - 1)) * e^ - a * ( d(k,l) - 1) )
+
+        P( leak in cell i and leak in cell j | beep in cell k )
+            = P( beep in k | leak in cell i and leak in cell j ) * P( leak in cell i and leak in cell j ) / P( beep in cell k )
+            = e^(- a * (d(k,i) - 1)) + e^ - a * (d(k,j) - 1)) - e^ - a * (d(k,i) - 1)) * e^ - a * ( d(k,j) - 1) )
+                * P( leak in cell i ) * P( leak in cell j )
+                    / sum { cell l, cell m} P( leak in cell l ) * P( leak in cell m ) 
+                        * e^(- a * (d(k,m) - 1)) + e^ - a * (d(k,l) - 1)) - e^ - a * (d(k,m) - 1)) * e^ - a * ( d(k,l) - 1) )
+
         """
 
-        # Sum over all open cells; P( leak in k ) *  P( we heard a beep while in cell i )
-        sum_k_leak_beep = 0
-        for k_row, k_col in self.open_cells:
-            p_leak_in_k = self.sensory_data[k_row][k_col].probability * (
-                e**(-self.alpha * (self.distance[self.bot_location][(k_row, k_col)] - 1)))
-            for k_prime_row, k_prime_col in self.open_cells:
-                p_leak_in_k_prime = self.sensory_data[k_prime_row][k_prime_row].probability * (
-                    e**(-self.alpha * (self.distance[self.bot_location][(k_prime_row, k_prime_row)] - 1)))
-                sum_k_leak_beep += p_leak_in_k * p_leak_in_k_prime
+        """
+        sum { cell l, cell m} P( leak in cell l ) * P( leak in cell m ) 
+            * e^(- a * (d(k,m) - 1)) + e^ - a * (d(k,l) - 1)) - e^ - a * (d(k,m) - 1)) * e^ - a * ( d(k,l) - 1) )
+        """
 
-        logging.critical(f"sum_k_leak_beep: {sum_k_leak_beep}")
-
-        for j_row, j_col in self.open_cells:
-            if (j_row, j_col) == self.bot_location:
+        sum_p_beep_in_cell_k = 0
+        for l_row, l_col in self.open_cells:
+            if (l_row, l_col) == (self.bot_location):
                 continue
 
-            p_leak_in_cell_j = self.sensory_data[j_row][j_col].probability
-            p_beep_j = e**(-self.alpha *
-                           (self.distance[self.bot_location][(j_row, j_col)] - 1))
-            self.sensory_data[j_row][j_col].probability = (
-                p_leak_in_cell_j * p_beep_j) / sum_k_leak_beep
+            p_l = self.sensory_data[l_row][l_col].probability
+
+            for m_row, m_col in self.open_cells:
+                # if (l_row, l_col) == (m_row, m_col):
+                #     continue
+
+                p_m = self.sensory_data[m_row][m_col].probability
+                p_beep_m = e**(-self.alpha *
+                               (self.distance[self.bot_location][(m_row, m_col)] - 1))
+                p_beep_l = e**(-self.alpha *
+                               (self.distance[self.bot_location][(l_row, l_col)] - 1))
+
+                p_beep_k = (p_l * p_m) * \
+                    ((p_beep_m + p_beep_l) - (p_beep_m * p_beep_l))
+
+                sum_p_beep_in_cell_k += p_beep_k
+
+        logging.critical(f"sum_p_beep_in_cell_k: {sum_p_beep_in_cell_k}")
+
+        """
+        P( beep in k | leak in cell i and leak in cell j )
+            = e^(- a * (d(k,i) - 1)) + e^ - a * (d(k,j) - 1)) - e^ - a * (d(k,i) - 1)) * e^ - a * ( d(k,j) - 1) )
+        P( leak in cell i and leak in cell j )
+            = P( leak in cell i ) * P( leak in cell j )
+        """
+        old_sensory_data = copy.deepcopy(self.sensory_data)
+        for i_row, i_col in self.open_cells:
+            p_i = old_sensory_data[i_row][i_col].probability
+            if (i_row, i_col) == self.bot_location:
+                continue
+
+            for j_row, j_col in self.open_cells:
+                if (l_row, l_col) == (j_row, j_col):
+                    continue
+
+                p_j = old_sensory_data[j_row][j_col].probability
+                p_beep_k = p_i * p_j * e**(-self.alpha * (self.distance[(self.bot_location)][(j_row, j_col)] - 1)) + e**(-self.alpha * (self.distance[self.bot_location][(i_row, i_col)] - 1)) - \
+                    e**(-self.alpha * (self.distance[self.bot_location][(j_row, j_col)] - 1)) * \
+                    e**(-self.alpha *
+                        (self.distance[self.bot_location][(i_row, i_col)] - 1))
+                self.sensory_data[i_row][i_col].probability = p_beep_k / \
+                    sum_p_beep_in_cell_k
 
     def update_p_no_beep(self) -> None:
         """
+        --old shit--
         For cell i (our current cell): P( leak is in cell i | we heard no beep while in cell i ) = 0
 
         For cell j != i : P( leak is in cell j | we heard no beep while in cell i )
             =  P( leak in cell j ) * ( 1 - e^(-a*(d(i,j) - 1)) ) / [ sum_k P( leak is in k ) * ( 1 - e^(-a*(d(i,k)-1)) ) ]
+
+        --new shit--
+        P( leak in cell i and leak in cell j | no beep in cell k )
+            = P( no beep in k | leak in cell i and leak in cell j ) * P( leak in cell i and leak in cell j ) / P( no beep in cell k )
+
+        P( no beep in k | leak in cell i and leak in cell j )
+            = (1 - e^(- a * (d(k,i) - 1))) + (1 - e^ - a * (d(k,j) - 1))) - (1 - e^ - a * (d(k,i) - 1))) * (1 - e^ - a * ( d(k,j) - 1) ))
+
+        P( leak in cell i and leak in cell j )
+            = P( leak in cell i ) * P( leak in cell j )
+
+        P( no beep in cell k )
+            = sum { cell l, cell m } P( leak in cell l AND cell m AND no beep in cell k)
+            = sum { cell l, cell m } P( leak in cell l ) * P( leak in cell m ) * P( no beep in cell k | leak in cell m and leak in cell l)
+
+                P( no beep in cell k | leak in cell m and leak in cell l )
+                    = (1 - e^(- a * (d(k,m) - 1))) + (1 - e^ - a * (d(k,l) - 1))) - (1 - e^ - a * (d(k,m) - 1))) * (1 - e^ - a * ( d(k,l) - 1) ))
+
+            = sum { cell l, cell m} P( leak in cell l ) * P( leak in cell m ) 
+                * (1 - e^(- a * (d(k,m) - 1))) + (1 - e^ - a * (d(k,l) - 1))) - (1 - e^ - a * (d(k,m) - 1))) * (1 - e^ - a * ( d(k,l) - 1) ))
+
         """
 
         # Sum over all open cells; P( leak is in k ) * P( we heard no beep while in cell i )
-        sum_k_leak_no_beep = 0
-        for k_row, k_col in self.open_cells:
-            sum_k_leak_no_beep += self.sensory_data[k_row][k_col].probability * \
-                (1 - (e**(-self.alpha *
-                          (self.distance[self.bot_location][(k_row, k_col)] - 1))))
+        sum_p_no_beep_in_cell_k = 0
+        for l_row, l_col in self.open_cells:
+            if (l_row, l_col) == (self.bot_location):
+                continue
+            p_l = self.sensory_data[l_row][l_col].probability
 
-        for j_row, j_col in self.open_cells:
-            if (j_row, j_col) == self.bot_location:
+            for m_row, m_col in self.open_cells:
+
+                p_m = self.sensory_data[m_row][m_col].probability
+                p_no_beep_m = 1 - e**(-self.alpha *
+                                      (self.distance[self.bot_location][(m_row, m_col)] - 1))
+                p_no_beep_l = 1 - e**(-self.alpha *
+                                      (self.distance[self.bot_location][(l_row, l_col)] - 1))
+                p_no_beep_k = (p_l * p_m) * \
+                    ((p_no_beep_m + p_no_beep_l) - (p_no_beep_m * p_no_beep_l))
+
+                sum_p_no_beep_in_cell_k += p_no_beep_k
+
+        logging.critical(f"sum_p_no_beep_in_cell_k: {sum_p_no_beep_in_cell_k}")
+
+        old_sensory_data = copy.deepcopy(self.sensory_data)
+        for i_row, i_col in self.open_cells:
+            p_i = old_sensory_data[i_row][i_col].probability
+            if (i_row, i_col) == self.bot_location:
                 continue
 
-            p_leak_in_cell_j = self.sensory_data[j_row][j_col].probability
-            p_beep_j = e**(-self.alpha *
-                           (self.distance[self.bot_location][(j_row, j_col)] - 1))
-            p_not_beep_j = 1 - p_beep_j
-            self.sensory_data[j_row][j_col].probability = (
-                p_leak_in_cell_j * p_not_beep_j) / sum_k_leak_no_beep
+            for j_row, j_col in self.open_cells:
+                if (l_row, l_col) == (j_row, j_col):
+                    continue
+
+                p_j = old_sensory_data[j_row][j_col].probability
+                p_no_beep_i = 1 - e**(-self.alpha *
+                                      (self.distance[self.bot_location][(i_row, i_col)] - 1))
+                p_no_beep_j = 1 - e**(-self.alpha *
+                                      (self.distance[self.bot_location][(j_row, j_col)] - 1))
+                p_no_beep_k = p_i * p_j * \
+                    (p_no_beep_j + p_no_beep_i) - (p_no_beep_j * p_no_beep_i)
+                
+                self.sensory_data[i_row][i_col].probability = p_no_beep_k / \
+                    sum_p_no_beep_in_cell_k
 
     def plugged_leaks(self) -> bool:
         return self.leaks_plugged == 2
