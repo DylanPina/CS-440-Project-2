@@ -4,7 +4,7 @@ from ship import Seed
 
 if __name__ == '__main__':
     init_logging()
-    GameBuilder().add_ship(D=5, seed=None).add_bot(
-    bot=Bots.BOT8, alpha=0.5).build().play(output_traversal=False)
+    GameBuilder().add_ship(D=5, seed=Seed("input/single_leak_seed.csv")).add_bot(
+        bot=Bots.BOT3, alpha=0.5).build().play(output_traversal=False)
     # Seed("input/single_leak_seed.csv")
     # Seed("input/multi_leak_seed.csv", multi_leaks=True)

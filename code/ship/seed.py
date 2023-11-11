@@ -59,7 +59,7 @@ class Seed():
                     elif self.layout[r][c] == Cell.BOT:
                         self.bot_location = (r, c)
                     elif self.layout[r][c] == Cell.LEAK:
-                        self.leak_locations.add((r, c))
+                        self.leak_locations.append((r, c))
         else:
             for r in range(self.D):
                 for c in range(self.D):

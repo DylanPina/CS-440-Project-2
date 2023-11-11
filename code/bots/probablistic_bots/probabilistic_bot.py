@@ -63,11 +63,10 @@ class ProbabilisticBot(Bot, ABC):
     def sense(self) -> None:
         logging.debug(
             f"Bot did not find the leak in cell: {self.bot_location}")
-        if self.bot_location not in self.traversal:
-            logging.debug(
-                f"Updating probabilites given no leak in: {self.bot_location}")
-            self.update_p_no_leak(self.bot_location[0], self.bot_location[1])
-            self.print_sensory_data(" [after update_p_no_leak()]")
+        logging.debug(
+            f"Updating probabilites given no leak in: {self.bot_location}")
+        self.update_p_no_leak(self.bot_location[0], self.bot_location[1])
+        self.print_sensory_data(" [after update_p_no_leak()]")
 
         beep, self.p_beep = self.beep()
         if beep:
@@ -174,9 +173,10 @@ class ProbabilisticBot(Bot, ABC):
         """
 
         leak_not_in_d = 1 - self.sensory_data[row][col].probability
-        for r, c in self.open_cells:
-            if (r, c) != (row, col):
-                self.sensory_data[r][c].probability /= leak_not_in_d
+        if leak_not_in_d != 1:
+            for r, c in self.open_cells:
+                if (r, c) != (row, col):
+                    self.sensory_data[r][c].probability /= leak_not_in_d
 
         logging.debug(
             f"Divided all open cells by a constant factor of: {leak_not_in_d}")
@@ -273,6 +273,7 @@ class ProbabilisticBot(Bot, ABC):
             logging.debug(
                 f"Path to highest p cell: {shortest_path}")
             # (highest p cell, next step to get there)
+            shortest_path.popleft()
             return shortest_path
 
         logging.debug("Path to highest p cell: None")
