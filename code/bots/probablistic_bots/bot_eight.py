@@ -6,6 +6,7 @@ from typing import Tuple, List
 from config import Bots, Cell
 from math import e
 from .sensory_data import SensoryData
+from collections import defaultdict
 
 
 class BotEight(ProbabilisticBot):
@@ -18,33 +19,52 @@ class BotEight(ProbabilisticBot):
         self.variant = Bots.BOT8
         self.leaks_plugged = 0
         self.leak_locations = []
+        self.sensory_data_matrix = []
+        self.sensory_data_pairs_map = {}
 
         logging.info(f"Bot variant: {self.variant}")
         logging.info(f"Alpha: {self.alpha}")
 
-    def initialize_sensory_data(self) -> List[List[SensoryData]]:
+    def setup(self) -> None:
+        self.sensory_data_matrix = self.initialize_sensory_data_matrix()
+        self.sensory_data_pairs_map = self.initialize_sensory_data_pairs_map()
+        self.print_sensory_data_matrix()
+        self.print_sensory_data_pairs_map()
+        self.distance = self.get_distances()
+
+    def initialize_sensory_data_matrix(self) -> List[List[SensoryData]]:
         """Returns a matrix representing the bot's initial sensory data"""
 
-        sensory_matrix = [
-            [SensoryData() for _ in range(self.D**2)]
-            for _ in range(self.D**2)
+        sensory_data_matrix = [
+            [SensoryData() for _ in range(self.D)]
+            for _ in range(self.D)
         ]
 
-        for row in range(len(sensory_matrix)):
-            for col in range(len(sensory_matrix)):
+        for row in range(len(sensory_data_matrix)):
+            for col in range(len(sensory_data_matrix)):
                 if not self.ship_layout[row][col] == Cell.CLOSED:
                     self.open_cells.add((row, col))
-                else:
-                    sensory_matrix[row][col].closed = True
 
-        for row, col in self.open_cells:
-            if not self.ship_layout[row][col] == Cell.BOT:
-                sensory_matrix[row][col].probability = 1 / \
-                    (len(self.open_cells) - 1)
-            else:
-                sensory_matrix[row][col].probability = 0.00
+        return sensory_data_matrix
 
-        return sensory_matrix
+    def initialize_sensory_data_pairs_map(self) -> dict[dict[Tuple[int], float]]:
+        """Returns a matrix representing the bot's initial sensory data"""
+
+        sensory_data_pairs_map = defaultdict(dict)
+        n = len(self.open_cells)
+        for i in self.open_cells:
+            for j in self.open_cells:
+                if i == j:
+                    continue
+                sensory_data_pairs_map[i][j] = 2 / (n * (n - 1))
+        for i, values in sensory_data_pairs_map.items():
+            row, col = i
+            for j in values:
+                if i == j:
+                    continue
+                self.sensory_data_matrix[row][col].probability += sensory_data_pairs_map[i][j]
+
+        return sensory_data_pairs_map
 
     def action(self, timestep: int) -> None:
         logging.debug(f"Timestep: {timestep}")
@@ -294,3 +314,56 @@ class BotEight(ProbabilisticBot):
 
     def plugged_leaks(self) -> bool:
         return self.leaks_plugged == 2
+
+    def print_sensory_data_matrix(self, msg: str = None) -> None:
+        """Outputs the current sensory data to the log"""
+
+        if not logging.DEBUG >= logging.root.level:
+            return
+
+        precision = 5
+        max_length = precision + 2
+        sensory_output = f"\n--Sensory Data Matrix { msg if msg else ''}--\n"
+        for row in range(len(self.sensory_data_matrix)):
+            for col in range(len(self.sensory_data_matrix)):
+                if (row, col) == self.bot_location:
+                    sensory_output += f"{'BOT'.ljust(max_length, ' ')}, "
+                else:
+                    sensory_output += f"{str(round(self.sensory_data_matrix[row][col].probability, precision)).ljust(max_length, ' ')}, "
+
+            sensory_output = sensory_output.rsplit(", ", 1)[0]
+            if row != len(self.ship_layout) - 1:
+                sensory_output += "\n"
+
+        sensory_data_matrix_sum = 0
+        for row, col in self.open_cells:
+            sensory_data_matrix_sum += self.sensory_data_matrix[row][col].probability
+
+        logging.debug(sensory_output)
+        logging.debug(f"Sensory data matrix sum: {sensory_data_matrix_sum}\n")
+
+    def print_sensory_data_pairs_map(self, msg: str = None) -> None:
+        """Outputs the current sensory data to the log"""
+
+        if not logging.DEBUG >= logging.root.level:
+            return
+
+        precision = 5
+        max_length = precision + 2
+        sensory_output = f"\n--Sensory Data Pairs Map{ msg if msg else ''}--\n"
+        for i, values in self.sensory_data_pairs_map.items():
+            sensory_output += f"{i[0], i[1]} -> ["
+            for j in values:
+                sensory_output += f"{j[0], j[1]}: "
+                sensory_output += f"{str(round(self.sensory_data_pairs_map[i][j], precision)).ljust(max_length, ' ')}, "
+
+            sensory_output = sensory_output.rsplit(", ", 1)[0]
+            sensory_output += "]\n"
+
+        sensory_data_sum = 0
+        for i, values in self.sensory_data_pairs_map.items():
+            for j in values:
+                sensory_data_sum += self.sensory_data_pairs_map[i][j]
+
+        logging.debug(sensory_output)
+        logging.debug(f"Sensory data pairs map sum: {sensory_data_sum}\n")
