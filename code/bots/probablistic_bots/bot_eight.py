@@ -40,9 +40,10 @@ class BotEight(ProbabilisticBot):
             for _ in range(self.D)
         ]
 
-        for row in range(len(sensory_data_matrix)):
-            for col in range(len(sensory_data_matrix)):
+        for row in range(self.D):
+            for col in range(self.D):
                 if not self.ship_layout[row][col] == Cell.CLOSED:
+                    sensory_data_matrix[row][col].probability = 0.00
                     self.open_cells.add((row, col))
 
         return sensory_data_matrix
@@ -54,17 +55,36 @@ class BotEight(ProbabilisticBot):
         n = len(self.open_cells)
         for i in self.open_cells:
             for j in self.open_cells:
-                if i == j:
+                if i == j or (i in sensory_data_pairs_map[j]):
                     continue
                 sensory_data_pairs_map[i][j] = 2 / (n * (n - 1))
-        for i, values in sensory_data_pairs_map.items():
-            row, col = i
-            for j in values:
-                if i == j:
-                    continue
-                self.sensory_data_matrix[row][col].probability += sensory_data_pairs_map[i][j]
+                self.sensory_data_matrix[i[0]][i[1]
+                                               ].probability += sensory_data_pairs_map[i][j]
 
         return sensory_data_pairs_map
+
+    def sense(self) -> None:
+        logging.debug(
+            f"Bot did not find the leak in cell: {self.bot_location}")
+        logging.debug(
+            f"Updating probabilites given no leak in: {self.bot_location}")
+        self.update_p_no_leak(self.bot_location[0], self.bot_location[1])
+        self.print_sensory_data_matrix(" [after update_p_no_leak()]")
+        self.print_sensory_data_pairs_map(" [after update_p_no_leak()]")
+
+        beep, self.p_beep = self.beep()
+        if beep:
+            self.beeps += 1
+            logging.debug(f"Beep with p_beep: {self.p_beep}")
+            self.update_p_beep()
+        else:
+            self.no_beeps += 1
+            logging.debug(f"No beep with p_beep: {self.p_beep}")
+            self.update_p_no_beep()
+
+        self.highest_p_cell = self.get_highest_p_cell(self.sensory_data)
+        self.print_sensory_data_matrix(" [after update_p_no_leak()]")
+        self.print_sensory_data_pairs_map(" [after update_p_no_leak()]")
 
     def action(self, timestep: int) -> None:
         logging.debug(f"Timestep: {timestep}")
@@ -125,16 +145,26 @@ class BotEight(ProbabilisticBot):
             = P( leak in a ) / ( 1 - P ( leak is in d ) )
         """
 
-        leak_not_in_d = 1 - self.sensory_data[row][col].probability
-        for r, c in self.open_cells:
-            if (r, c) != (row, col):
-                self.sensory_data[r][c].probability /= leak_not_in_d
+        leak_in_i_j = 0
+        for i, values in self.sensory_data_pairs_map.items():
+            for j in values:
+                if i == j:
+                    continue
+                elif i == (row, col) or j == (row, col):
+                    leak_in_i_j += self.sensory_data_pairs_map[i][j]
+                    self.sensory_data_pairs_map[i][j] = 0.00
+
+        leak_not_in_i_j = 1 - leak_in_i_j
+        if leak_not_in_i_j != 1:
+            for r, c in self.open_cells:
+                if (r, c) != (row, col):
+                    self.sensory_data_matrix[r][c].probability /= leak_not_in_i_j
 
         logging.debug(
-            f"Divided all open cells by a constant factor of: {leak_not_in_d}")
+            f"Divided all open cells by a constant factor of: {leak_not_in_i_j}")
         logging.debug(
-            f"sensory_data[{row}][{col}].probability = {self.sensory_data[row][col].probability} -> 0.00")
-        self.sensory_data[row][col].probability = 0.00
+            f"sensory_data_matrix[{row}][{col}].probability = {self.sensory_data_matrix[row][col].probability} -> 0.00")
+        self.sensory_data_matrix[row][col].probability = 0.00
 
     def update_p_beep(self) -> None:
         """
@@ -353,6 +383,8 @@ class BotEight(ProbabilisticBot):
         sensory_output = f"\n--Sensory Data Pairs Map{ msg if msg else ''}--\n"
         for i, values in self.sensory_data_pairs_map.items():
             sensory_output += f"{i[0], i[1]} -> ["
+            if not values:
+                sensory_output += f", "
             for j in values:
                 sensory_output += f"{j[0], j[1]}: "
                 sensory_output += f"{str(round(self.sensory_data_pairs_map[i][j], precision)).ljust(max_length, ' ')}, "
