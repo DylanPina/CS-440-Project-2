@@ -4,6 +4,7 @@ from ship import Ship
 from config import INITIAL_SHIP_LAYOUT_OUTPUT_FILE, SHIP_LAYOUT_TRAVERSAL_OUTPUT_FILE
 from bots import Bot
 from ship import print_layout
+from .game_result import GameResult
 
 
 class Game:
@@ -31,20 +32,22 @@ class Game:
         print_layout(
             self.ship.layout, file=INITIAL_SHIP_LAYOUT_OUTPUT_FILE, title="--Initial State--")
 
-        leak_found = False
+        leaks_found = False
         timestep = 0
         start_time = time.time()
         while timestep < 100000:
             self.bot.action(timestep)
             if self.bot.plugged_leaks():
                 self.bot.print_stats(timestep + 1)
-                leak_found = True
+                leaks_found = True
                 break
             timestep += 1
 
-        if not leak_found:
-            logging.info(f"Bot has found the leak(s) in: {timestep + 1} timesteps")
-        logging.info(f"Finished in: {(time.time() - start_time) * 1000} ms")
+        total_run_time = (start_time - time.time()) * 1000
+        if not leaks_found:
+            logging.info(
+                f"Bot has found the leak(s) in: {timestep + 1} timesteps")
+        logging.info(f"Finished in: {total_run_time} ms\n")
 
         if output_traversal:
             print_layout(
@@ -53,6 +56,13 @@ class Game:
                 bot_start_location=self.bot.starting_location,
                 title="--Traversal--"
             )
+
+        return GameResult(
+            actions=timestep + 1,
+            bot_variant=self.bot.variant,
+            ship_dimensions=self.ship.D,
+            run_time_ms=total_run_time
+        )
 
     def bot_found_leak(self) -> bool:
         return self.bot.bot_location == self.ship.leak_location

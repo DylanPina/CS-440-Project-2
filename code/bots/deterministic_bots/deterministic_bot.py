@@ -54,7 +54,7 @@ class DeterministicBot(Bot, ABC):
         while queue:
             row, col = queue.popleft()
             # Check the current cell
-            if self.sensory_data[row][col] == target:
+            if self.sensory_data[row][col] == target and (row, col) != self.bot_location:
                 shortest_path.append((row, col))
 
             # Mark the cell as visited
@@ -81,7 +81,7 @@ class DeterministicBot(Bot, ABC):
                 shortest_path.append((r, c))
             return (
                 shortest_path[0],
-                shortest_path[-2],
+                shortest_path[-2]
             )  # (closest possible leak cell, next step to get there)
 
         return None  # Return None if no cell is found

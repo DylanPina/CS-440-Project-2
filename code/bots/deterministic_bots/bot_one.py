@@ -38,6 +38,7 @@ class BotOne(DeterministicBot):
     def action(self, timestep: int) -> None:
         if timestep % 2 == 0:
             self.sense()
+            self.print_sensory_data()
             self.senses += 1
         elif timestep % 2 == 1:
             self.move()
