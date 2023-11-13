@@ -6,9 +6,7 @@ from .sensory_data import SensoryData
 
 
 class BotSix(DeterministicBot):
-    """
-
-    """
+    """Modified veresion of bot two to handle two leaks"""
 
     def __init__(self, k: int) -> None:
         super().__init__(k)

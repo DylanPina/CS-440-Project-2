@@ -11,7 +11,7 @@ from collections import defaultdict, deque
 
 class BotEight(ProbabilisticBot):
     """
-
+    Bot 8 is exactly Bot 3, except that the probability updates must be corrected to account for the fact that there are two leaks.
     """
 
     def __init__(self, alpha: int) -> None:
@@ -19,20 +19,19 @@ class BotEight(ProbabilisticBot):
         self.variant = Bots.BOT8
         self.leaks_plugged = 0
         self.leak_locations = []
-        self.sensory_data = []
         self.sensory_data_pairs_map = {}
 
         logging.info(f"Bot variant: {self.variant}")
         logging.info(f"Alpha: {self.alpha}")
 
     def setup(self) -> None:
-        self.sensory_data = self.initialize_sensory_data_matrix()
+        self.sensory_data = self.initialize_sensory_data()
         self.sensory_data_pairs_map = self.initialize_sensory_data_pairs_map()
         self.print_sensory_data("initial")
         self.print_sensory_data_pairs_map("initial")
         self.distance = self.get_distances()
 
-    def initialize_sensory_data_matrix(self) -> List[List[SensoryData]]:
+    def initialize_sensory_data(self) -> List[List[SensoryData]]:
         """Returns a matrix representing the bot's initial sensory data"""
 
         sensory_data = [
@@ -49,7 +48,8 @@ class BotEight(ProbabilisticBot):
         return sensory_data
 
     def initialize_sensory_data_pairs_map(self) -> dict[dict[Tuple[int], float]]:
-        """Returns a matrix representing the bot's initial sensory data"""
+        """Returns a map representing the bot's initial cell pairing sensory data"""
+
         sensory_data_pairs_map = defaultdict(dict)
         n = len(self.open_cells)
         for i in self.open_cells:
@@ -68,6 +68,8 @@ class BotEight(ProbabilisticBot):
         return sensory_data_pairs_map
 
     def sense_multi(self) -> None:
+        """Updates sensory data about the environment for multiple leaks"""
+
         logging.debug(
             f"Bot did not find the leak in cell: {self.bot_location}")
         logging.debug(
@@ -78,9 +80,10 @@ class BotEight(ProbabilisticBot):
         self.print_sensory_data(
             f"[after update_p_no_leak({self.bot_location[0], self.bot_location[1]})]")
 
-        if self.beep()[0]:
+        beep, p_beep = self.beep()
+        if beep:
             self.beeps += 1
-            logging.debug("Beep!")
+            logging.debug(f"Beep with p_beep = {p_beep}")
             self.update_p_beep_multi()
             self.print_sensory_data_pairs_map(
                 f"[after update_p_beep({self.bot_location[0], self.bot_location[1]})]")
@@ -88,7 +91,7 @@ class BotEight(ProbabilisticBot):
                 f"[after update_p_beep({self.bot_location[0], self.bot_location[1]})]")
         else:
             self.no_beeps += 1
-            logging.debug("No beep!")
+            logging.debug(f"No beep with p_beep = {p_beep}")
             self.update_p_no_beep_multi()
             self.print_sensory_data_pairs_map(
                 f"[after update_p_no_beep({self.bot_location[0], self.bot_location[1]})]")
@@ -139,16 +142,10 @@ class BotEight(ProbabilisticBot):
         p_beep_two = e**(-self.alpha *
                          (self.distance[self.bot_location][leak_two] - 1)) if leak_two else 0
 
-        logging.critical(
-            f"leak_one: {leak_one} -> P({p_beep_one}), distance: {self.distance[self.bot_location][leak_one]}")
-        if leak_two:
-            logging.critical(
-                f"leak_two: {leak_two} -> P({p_beep_two}), distance: {self.distance[self.bot_location][leak_two]}")
-
-        return ((random.random() <= p_beep_one) or (random.random() <= p_beep_two), p_beep_one + p_beep_two)
+        return ((random.random() <= p_beep_one) or (random.random() <= p_beep_two), 1 - ((1 - p_beep_one) * (1 - p_beep_two)))
 
     def update_p_no_leak_multi(self, row: int, col: int) -> None:
-        """Returns updated sensory data given (row, col) does not contain the leak"""
+        """Returns updated sensory data given (row, col) does not contain the leak for multiple leaks"""
 
         leak_in_i_j = 0
         for i, values in self.sensory_data_pairs_map.items():
@@ -165,17 +162,24 @@ class BotEight(ProbabilisticBot):
                     continue
                 self.sensory_data_pairs_map[i][j] /= 1 - leak_in_i_j
 
-        new_sensory_data_matrix = self.initialize_sensory_data_matrix()
         for i, values in self.sensory_data_pairs_map.items():
+            p = 0
             for j in values:
                 if i == j:
                     continue
-                new_sensory_data_matrix[i[0]][i[1]
-                                              ].probability += self.sensory_data_pairs_map[i][j]
-        self.sensory_data = new_sensory_data_matrix
+                p += self.sensory_data_pairs_map[i][j]
+            self.sensory_data[i[0]][i[1]].probability = p
+
         self.sensory_data[row][col].probability = 0.00
 
     def update_p_beep_multi(self) -> None:
+        """
+        P( leak in cell i and leak in cell j | beep in cell k )
+            = P( leak in cell i and leak in cell j )
+                * P( beep in cell k | leak in cell i and leak in cell j )
+                    / P( beep in cell k )
+        """
+
         sum_p_beep_in_cell_k = 0
         for l_row, l_col in self.open_cells:
             if (l_row, l_col) == (self.bot_location):
@@ -226,14 +230,20 @@ class BotEight(ProbabilisticBot):
 
         for i, values in self.sensory_data_pairs_map.items():
             p = 0
-            row, col = i
             for j in values:
                 if i == j:
                     continue
                 p += self.sensory_data_pairs_map[i][j]
-            self.sensory_data[row][col].probability = p
+            self.sensory_data[i[0]][i[1]].probability = p
 
     def update_p_no_beep_multi(self) -> None:
+        """
+        P( leak in cell i and leak in cell j | no beep in cell k )
+            = P( leak in cell i and leak in cell j )
+                * P( no beep in cell k | leak in cell i and leak in cell j )
+                    / P( no beep in cell k )
+        """
+
         for l_row, l_col in self.open_cells:
             if (l_row, l_col) == (self.bot_location):
                 continue
@@ -293,18 +303,14 @@ class BotEight(ProbabilisticBot):
 
         for i, values in self.sensory_data_pairs_map.items():
             p = 0
-            row, col = i
             for j in values:
                 if i == j:
                     continue
                 p += self.sensory_data_pairs_map[i][j]
-            self.sensory_data[row][col].probability = p
-
-    def plugged_leaks(self) -> bool:
-        return self.leaks_plugged == 2
+            self.sensory_data[i[0]][i[1]].probability = p
 
     def print_sensory_data_pairs_map(self, msg: str = None) -> None:
-        """Outputs the current sensory data to the log"""
+        """Outputs the current sensory data pairs map to the log"""
 
         if not logging.DEBUG >= logging.root.level:
             return
@@ -330,3 +336,6 @@ class BotEight(ProbabilisticBot):
 
         logging.debug(sensory_output)
         logging.debug(f"Sensory data pairs map sum: {sensory_data_sum}\n")
+
+    def plugged_leaks(self) -> bool:
+        return self.leaks_plugged == 2

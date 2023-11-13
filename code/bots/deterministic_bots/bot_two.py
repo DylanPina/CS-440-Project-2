@@ -7,8 +7,7 @@ from .sensory_data import SensoryData
 
 class BotTwo(DeterministicBot):
     """
-    Performs the same as bot one until a leak has been found within the detection square. Once the 
-    leak has been found, the bot will stop sensing and visit each and every open cell which has been marked.
+    Performs the same as bot one until a leak has been found within the detection square. Once the leak has been found, the bot will stop sensing and visit each and every open cell which has been marked.
     """
 
     def __init__(self, k: int) -> None:

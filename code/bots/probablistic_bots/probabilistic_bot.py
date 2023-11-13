@@ -66,7 +66,7 @@ class ProbabilisticBot(Bot, ABC):
         logging.debug(
             f"Updating probabilites given no leak in: {self.bot_location}")
         self.update_p_no_leak(self.bot_location[0], self.bot_location[1])
-        self.print_sensory_data(" [after update_p_no_leak()]")
+        self.print_sensory_data(f" [after update_p_no_leak{self.bot_location}]")
 
         beep, self.p_beep = self.beep()
         if beep:
@@ -79,7 +79,7 @@ class ProbabilisticBot(Bot, ABC):
             self.update_p_no_beep()
 
         self.highest_p_cell = self.get_highest_p_cell(self.sensory_data)
-        self.print_sensory_data(" [after sense()]")
+        self.print_sensory_data(f" [after sense({self.bot_location})]")
 
     def get_highest_p_cell(self, sensory_data: List[List[SensoryData]]) -> Tuple[SensoryData]:
         visited = set()

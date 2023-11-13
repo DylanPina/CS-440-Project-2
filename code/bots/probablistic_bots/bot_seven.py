@@ -8,14 +8,15 @@ from math import e
 
 class BotSeven(ProbabilisticBot):
     """
-    Bot 7 is exactly Bot 3, but removes the first leak once its cell is entered, anc continues until the second leak is also identified and plugged.
+    Bot 7 is exactly Bot 3, but removes the first leak once its cell is entered, anc continues until the 
+    second leak is also identified and plugged.
     """
 
     def __init__(self, alpha: int) -> None:
         super().__init__(alpha)
         self.variant = Bots.BOT7
         self.leaks_plugged = 0
-        self.leak_locations = set()
+        self.leak_locations = []
 
         logging.info(f"Bot variant: {self.variant}")
         logging.info(f"Alpha: {self.alpha}")
