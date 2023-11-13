@@ -287,7 +287,7 @@ class ProbabilisticBot(Bot, ABC):
 
         precision = 5
         max_length = precision + 2
-        sensory_output = f"\n--Sensory Data{ msg if msg else ''}--\n"
+        sensory_output = f"\n--Sensory Data { msg if msg else ''}--\n"
         for row in range(len(self.sensory_data)):
             for col in range(len(self.sensory_data)):
                 if (row, col) == self.bot_location:
