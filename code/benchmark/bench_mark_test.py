@@ -1,5 +1,6 @@
 import logging
 import statistics
+import math
 import matplotlib.pyplot as plt
 from config import Bots
 from .benchmark_assessment import BenchmarkAssessment
@@ -89,10 +90,11 @@ class BenchMarkTest():
         axis.set_ylabel('Actions')
         axis.set_xlabel('alpha')
 
-        axis.xaxis.set_major_locator(MultipleLocator(1))
-        axis.xaxis.set_major_formatter(FormatStrFormatter('% 1.2f'))
+        axis.xaxis.set_major_locator(MultipleLocator(0.005))
+        axis.xaxis.set_major_formatter(FormatStrFormatter('%.2f'))
 
         axis.scatter(alpha_values, actions_axis)
+        plt.tick_params(axis='x', which='major', labelsize=6)
         plt.savefig(
             f"benchmark/graphs/{self.bot}-ITR({self.itr})D({self.d})")
         plt.clf()

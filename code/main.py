@@ -15,5 +15,5 @@ if __name__ == '__main__':
     #     .build()\
     #     .play(output_traversal=False)
 
-    BenchMarkTest(itr=10, d=20, bot=Bots.BOT5,
-                  k_range=[(1, 10), 0.5]).run()
+    BenchMarkTest(itr=1, d=10, bot=Bots.BOT7,
+                  alpha_range=[(0, 0.1), 0.005]).run()
