@@ -24,6 +24,11 @@ class Ship:
             self.layout = seed.layout
             self.closed_cells = seed.closed_cells
             self.open_cells = seed.open_cells
+
+            logging.info(f"Using seed: {self.seed.file}")
+            logging.info(
+                f"Seed type: {'multiple leaks' if self.seed.multi_leaks else 'single leak'}")
+            logging.info(f"Ship dimensions: {self.seed.D} x {self.seed.D}")
         else:
             self.layout = self.create_matrix()
             self.open_initial_cell()

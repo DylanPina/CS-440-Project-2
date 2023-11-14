@@ -28,7 +28,7 @@ class BotEight(ProbabilisticBot):
         self.sensory_data = self.initialize_sensory_data()
         self.sensory_data_pairs_map = self.initialize_sensory_data_pairs_map()
         self.print_sensory_data("initial")
-        self.print_sensory_data_pairs_map("initial")
+        # self.print_sensory_data_pairs_map("initial")
         self.distance = self.get_distances()
 
     def initialize_sensory_data(self) -> List[List[SensoryData]]:
@@ -75,8 +75,8 @@ class BotEight(ProbabilisticBot):
         logging.debug(
             f"Updating probabilites given no leak in: {self.bot_location}")
         self.update_p_no_leak_multi(self.bot_location[0], self.bot_location[1])
-        self.print_sensory_data_pairs_map(
-            f"[after update_p_no_leak({self.bot_location[0], self.bot_location[1]})]")
+        # self.print_sensory_data_pairs_map(
+        #     f"[after update_p_no_leak({self.bot_location[0], self.bot_location[1]})]")
         self.print_sensory_data(
             f"[after update_p_no_leak({self.bot_location[0], self.bot_location[1]})]")
 
@@ -85,16 +85,16 @@ class BotEight(ProbabilisticBot):
             self.beeps += 1
             logging.debug(f"Beep with p_beep = {p_beep}")
             self.update_p_beep_multi()
-            self.print_sensory_data_pairs_map(
-                f"[after update_p_beep({self.bot_location[0], self.bot_location[1]})]")
+            # self.print_sensory_data_pairs_map(
+            #     f"[after update_p_beep({self.bot_location[0], self.bot_location[1]})]")
             self.print_sensory_data(
                 f"[after update_p_beep({self.bot_location[0], self.bot_location[1]})]")
         else:
             self.no_beeps += 1
             logging.debug(f"No beep with p_beep = {p_beep}")
             self.update_p_no_beep_multi()
-            self.print_sensory_data_pairs_map(
-                f"[after update_p_no_beep({self.bot_location[0], self.bot_location[1]})]")
+            # self.print_sensory_data_pairs_map(
+            #     f"[after update_p_no_beep({self.bot_location[0], self.bot_location[1]})]")
             self.print_sensory_data(
                 f"[after update_p_no_beep({self.bot_location[0], self.bot_location[1]})]")
 

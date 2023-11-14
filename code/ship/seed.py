@@ -6,6 +6,7 @@ from typing import List
 
 class Seed():
     def __init__(self, file: str, multi_leaks: bool = False):
+        self.file = file
         self.layout = self.read_ship_layout_from_file(file)
         self.D = len(self.layout)
         self.closed_cells = set()
@@ -19,8 +20,6 @@ class Seed():
             self.leak_location = None
 
         self.get_cells()
-        logging.info(f"Ship dimensions: {self.D} x {self.D}")
-        logging.info(f"Seed type: singular leak")
 
     def read_ship_layout_from_file(self, file: str) -> List[List[Cell]]:
         """
@@ -28,7 +27,6 @@ class Seed():
         'file' and returns a functional ship layout.
         """
 
-        logging.info(f"Using seed: {file}")
         layout = []
         reader = csv.reader(open(file))
         for row in reader:

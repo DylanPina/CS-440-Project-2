@@ -1,6 +1,5 @@
 import logging
 import statistics
-import math
 import matplotlib.pyplot as plt
 from config import Bots
 from .benchmark_assessment import BenchmarkAssessment
@@ -17,13 +16,15 @@ class BenchMarkTest():
             d: int,
             bot: Bots,
             k_range: Tuple[Tuple[int, int], int] = None,
-            alpha_range: Tuple[Tuple[float, float], float] = None
+            alpha_range: Tuple[Tuple[float, float], float] = None,
+            file_name: str = None
     ):
         self.itr = itr
         self.d = d
         self.bot = bot
         self.k_range = k_range
         self.alpha_range = alpha_range
+        self.file_name = file_name
 
     def run(self) -> None:
         if self.k_range:
@@ -62,8 +63,14 @@ class BenchMarkTest():
         axis.xaxis.set_major_formatter(FormatStrFormatter('% 1.2f'))
 
         axis.scatter(k_values, actions_axis)
-        plt.savefig(
-            f"benchmark/graphs/{self.bot}-ITR({self.itr})D({self.d})")
+
+        if self.file_name:
+            plt.savefig(
+                f"benchmark/graphs/{self.file_name}")
+        else:
+            plt.savefig(
+                f"benchmark/graphs/{self.bot}-ITR({self.itr})D({self.d})")
+
         plt.clf()
 
     def run_probabilistic_bot(self):
@@ -95,6 +102,12 @@ class BenchMarkTest():
 
         axis.scatter(alpha_values, actions_axis)
         plt.tick_params(axis='x', which='major', labelsize=6)
-        plt.savefig(
-            f"benchmark/graphs/{self.bot}-ITR({self.itr})D({self.d})")
+
+        if self.file_name:
+            plt.savefig(
+                f"benchmark/graphs/{self.file_name}")
+        else:
+            plt.savefig(
+                f"benchmark/graphs/{self.bot}-ITR({self.itr})D({self.d})")
+
         plt.clf()
