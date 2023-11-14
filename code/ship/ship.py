@@ -186,6 +186,21 @@ class Ship:
                 0, bot_row - self.bot.k), min(self.D, bot_row + self.bot.k + 1)
             left, right = max(
                 0, bot_col - self.bot.k), min(self.D, bot_col + self.bot.k + 1)
+
+            if abs(top - bottom) == self.D and abs(left - right) == self.D:
+                if top > bottom:
+                    top -= 1
+                    bottom += 1
+                else:
+                    top += 1
+                    bottom -= 1
+                if left > right:
+                    left -= 1
+                    right += 1
+                else:
+                    left += 1
+                    right -= 1
+
             for row in range(top, bottom):
                 for col in range(left, right):
                     restricted.add((row, col))
