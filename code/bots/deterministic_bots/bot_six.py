@@ -64,7 +64,7 @@ class BotSix(DeterministicBot):
         # Loop through each row of the square
         for row in range(top, bottom):
             for col in range(left, right):
-                if self.ship_layout[row][col] == Cell.LEAK and not self.sensory_data[r][c] == SensoryData.LEAK:
+                if self.ship_layout[row][col] == Cell.LEAK and not self.sensory_data[row][col] == SensoryData.LEAK:
                     self.leak_found = True
 
         # If the leak is not found then we update the sensory data square

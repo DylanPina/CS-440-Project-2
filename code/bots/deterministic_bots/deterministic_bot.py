@@ -107,6 +107,6 @@ class DeterministicBot(Bot, ABC):
         logging.debug(sensory_output)
 
     def print_stats(self, timestep: int) -> None:
-        logging.info(f"Bot has found the leak at timestep: {timestep}")
+        logging.info(f"Bot has found the leak(s) at timestep: {timestep}")
         logging.info(f"Moves: {self.moves}")
         logging.info(f"Senses: {self.senses}")

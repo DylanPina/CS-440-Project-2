@@ -46,7 +46,7 @@ class Game:
         total_run_time = (start_time - time.time()) * 1000
         if not leaks_found:
             logging.info(
-                f"Bot has found the leak(s) in: {timestep + 1} timesteps")
+                f"Bot was not able to find the leak(s) in: {timestep} timesteps")
         logging.info(f"Finished in: {total_run_time} ms\n")
 
         if output_traversal:
