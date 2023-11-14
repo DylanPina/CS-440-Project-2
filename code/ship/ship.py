@@ -1,4 +1,5 @@
 import logging
+from math import floor
 from .seed import Seed
 from typing import List
 from config import Cell
@@ -182,10 +183,10 @@ class Ship:
             bot_row, bot_col = self.bot.bot_location
             restricted = set()
 
-            top, bottom = max(
-                0, bot_row - self.bot.k), min(self.D, bot_row + self.bot.k + 1)
-            left, right = max(
-                0, bot_col - self.bot.k), min(self.D, bot_col + self.bot.k + 1)
+            top, bottom = floor(max(
+                0, bot_row - self.bot.k)), floor(min(self.D, bot_row + self.bot.k + 1))
+            left, right = floor(max(
+                0, bot_col - self.bot.k)), floor(min(self.D, bot_col + self.bot.k + 1))
 
             if abs(top - bottom) == self.D and abs(left - right) == self.D:
                 if top > bottom:
@@ -232,10 +233,10 @@ class Ship:
                 bot_row, bot_col = self.bot.bot_location
                 restricted = set()
 
-                top, bottom = max(
-                    0, bot_row - self.bot.k), min(self.D, bot_row + self.bot.k + 1)
-                left, right = max(
-                    0, bot_col - self.bot.k), min(self.D, bot_col + self.bot.k + 1)
+                top, bottom = floor(max(
+                    0, bot_row - self.bot.k)), floor(min(self.D, bot_row + self.bot.k + 1))
+                left, right = floor(max(
+                    0, bot_col - self.bot.k)), floor(min(self.D, bot_col + self.bot.k + 1))
                 for row in range(top, bottom):
                     for col in range(left, right):
                         restricted.add((row, col))

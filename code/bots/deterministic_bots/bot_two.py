@@ -1,4 +1,5 @@
 import logging
+from math import floor
 from .deterministic_bot import DeterministicBot
 from typing import Tuple, List, Optional
 from config import Bots, Cell
@@ -48,8 +49,10 @@ class BotTwo(DeterministicBot):
     def sense(self) -> None:
         r, c = self.bot_location
         # Calculate the bounds of the square
-        top, bottom = max(0, r - self.k), min(self.D, r + self.k + 1)
-        left, right = max(0, c - self.k), min(self.D, c + self.k + 1)
+        top, bottom = floor(
+            max(0, r - self.k)), floor(min(self.D, r + self.k + 1))
+        left, right = floor(
+            max(0, c - self.k)), floor(min(self.D, c + self.k + 1))
 
         # Loop through each row of the square
         for row in range(top, bottom):
