@@ -6,7 +6,8 @@ from config import Cell
 from random import randint, choice
 from bots import Bot
 from bots.deterministic_bots import DeterministicBot, BotFive, BotSix
-from bots.probablistic_bots import BotSeven, BotEight
+from bots.probablistic_bots import BotSeven
+from bots.probablistic_bots.multiple_leaks import BotEight
 
 
 class Ship:

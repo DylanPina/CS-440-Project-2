@@ -1,7 +1,8 @@
 from game import Game
 from ship import Ship
 from bots.deterministic_bots import BotOne, BotTwo, BotFive, BotSix
-from bots.probablistic_bots import BotThree, BotFour, BotSeven, BotEight
+from bots.probablistic_bots import BotThree, BotFour, BotSeven
+from bots.probablistic_bots.multiple_leaks import BotEight
 from config import Bots
 from ship import Seed
 

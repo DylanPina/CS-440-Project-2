@@ -66,7 +66,8 @@ class ProbabilisticBot(Bot, ABC):
         logging.debug(
             f"Updating probabilites given no leak in: {self.bot_location}")
         self.update_p_no_leak(self.bot_location[0], self.bot_location[1])
-        self.print_sensory_data(f" [after update_p_no_leak{self.bot_location}]")
+        self.print_sensory_data(
+            f" [after update_p_no_leak{self.bot_location}]")
 
         beep, self.p_beep = self.beep()
         if beep:
