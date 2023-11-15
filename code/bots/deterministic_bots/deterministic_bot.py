@@ -1,4 +1,5 @@
 import logging
+from math import floor
 from abc import ABC
 from typing import List, Optional, Tuple
 from config import Cell
@@ -85,6 +86,23 @@ class DeterministicBot(Bot, ABC):
             )  # (closest possible leak cell, next step to get there)
 
         return None  # Return None if no cell is found
+
+    def mark_cells_outside_no_leak(self) -> None:
+        """Marks all possible leak cells outside the detection radius as NO LEAK"""
+
+        r, c = self.bot_location
+        # Calculate the bounds of the square
+        top, bottom = floor(
+            max(0, r - self.k)), floor(min(self.D, r + self.k + 1))
+        left, right = floor(
+            max(0, c - self.k)), floor(min(self.D, c + self.k + 1))
+
+        # Loop through each cell not within the detection radius
+        for r in range(len(self.ship_layout)):
+            for c in range(len(self.ship_layout)):
+                # Check if the cell is outside the detection square
+                if r < top or r >= bottom or c < left or c >= right and self.sensory_data[r][c] == SensoryData.POSSIBLE_LEAK:
+                    self.sensory_data[r][c] = SensoryData.NO_LEAK
 
     def print_sensory_data(self) -> None:
         """Outputs the current sensory data to the log"""

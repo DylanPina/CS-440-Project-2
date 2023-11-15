@@ -113,20 +113,5 @@ class BotOne(DeterministicBot):
         self.traversal.pop()
         return self.parent[self.bot_location]
 
-    def mark_cells_outside_no_leak(self) -> None:
-        r, c = self.bot_location
-        # Calculate the bounds of the square
-        top, bottom = floor(
-            max(0, r - self.k)), floor(min(self.D, r + self.k + 1))
-        left, right = floor(
-            max(0, c - self.k)), floor(min(self.D, c + self.k + 1))
-
-        # Loop through each cell not within the detection radius
-        for r in range(len(self.ship_layout)):
-            for c in range(len(self.ship_layout)):
-                # Check if the cell is outside the detection square
-                if r < top or r >= bottom or c < left or c >= right and self.sensory_data[r][c] == SensoryData.POSSIBLE_LEAK:
-                    self.sensory_data[r][c] = SensoryData.NO_LEAK
-
     def plugged_leaks(self) -> bool:
         return self.leak_plugged

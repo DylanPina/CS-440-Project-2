@@ -13,7 +13,7 @@ if __name__ == '__main__':
     start_time = time.time()
     GameBuilder()\
         .add_ship(D=10, seed=None)\
-        .add_bot(bot=Bots.BOT1, k=1)\
+        .add_bot(bot=Bots.BOT5, k=1)\
         .build()\
         .play(output_traversal=False)
     print("--- %s seconds ---" % (time.time() - start_time))

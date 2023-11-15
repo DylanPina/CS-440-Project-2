@@ -43,8 +43,9 @@ class BotFive(DeterministicBot):
             logging.debug("Bot has found a leak in its current cell")
             self.leaks_plugged += 1
             logging.debug(f"Leaks remaining: {2 - self.leaks_plugged}")
-
-        self.sensory_data[r][c] = SensoryData.NO_LEAK
+            self.sensory_data[r][c] = SensoryData.LEAK
+        else:
+            self.sensory_data[r][c] = SensoryData.NO_LEAK
         return self.bot_location
 
     def sense(self) -> None:
@@ -59,8 +60,13 @@ class BotFive(DeterministicBot):
         # Loop through each row of the square
         for row in range(top, bottom):
             for col in range(left, right):
-                if self.ship_layout[row][col] == Cell.LEAK:
+                if self.ship_layout[row][col] == Cell.LEAK and not self.sensory_data[row][col] == Cell.LEAK:
                     leak_found = True
+
+        if self.leaks_plugged and leak_found:
+            logging.debug(f"Leak detected in detection square!!!")
+            self.mark_cells_outside_no_leak()
+            self.print_sensory_data()
 
         # If the leak is not found then we update the sensory data square
         # with all the cells in the square to NO LEAK
