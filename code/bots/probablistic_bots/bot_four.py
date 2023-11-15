@@ -3,7 +3,7 @@ import random
 from .probabilistic_bot import ProbabilisticBot
 from typing import Tuple
 from config import Bots, Cell
-from math import e
+from math import e, floor, ceil
 
 
 class BotFour(ProbabilisticBot):
@@ -15,9 +15,21 @@ class BotFour(ProbabilisticBot):
         super().__init__(alpha)
         self.variant = Bots.BOT4
         self.leak_plugged = False
+        self.q_1 = set()
+        self.q_2 = set()
+        self.q_3 = set()
+        self.q_4 = set()
 
         logging.info(f"Bot variant: {self.variant}")
         logging.info(f"Alpha: {self.alpha}")
+
+    def setup(self) -> None:
+        super().setup()
+        self.divide_board()
+        logging.debug(f"Quadrant I: {self.q_1}")
+        logging.debug(f"Quadrant II: {self.q_2}")
+        logging.debug(f"Quadrant III: {self.q_3}")
+        logging.debug(f"Quadrant IV: {self.q_4}")
 
     def action(self, timestep: int) -> None:
         logging.debug(f"Timestep: {timestep}")
@@ -54,6 +66,42 @@ class BotFour(ProbabilisticBot):
                      (self.distance[self.bot_location][self.leak_location] - 1))
 
         return (random.random() < p_beep, p_beep)
+
+    def divide_board(self) -> None:
+        """
+        Divides board into four quandrants.
+        """
+        # Divide board for even D val
+        if self.D % 2 == 0:
+            for row, col in self.open_cells:
+                if row in range(0, int((self.D/2))):
+                    if col in range(0, int((self.D/2))):
+                        self.q_1.add((row, col))
+                    else:
+                        self.q_2.add((row, col))
+                else:
+                    if col in range(0, int((self.D/2))):
+                        self.q_3.add((row, col))
+                    else:
+                        self.q_4.add((row, col))
+        # Divide board for odd D val
+        else:
+            for row in range(len(self.sensory_data)):
+                for col in range(len(self.sensory_data)):
+                    if row in range(0, floor(self.D/2)):
+                        if col in range(floor(self.D/2), self.D):
+                            self.q_2.add((row, col))
+                    if row == floor(self.D/2) and col == floor(self.D/2):
+                        self.q_2.add((row, col))
+                    if row in range(0, floor((self.D/2)) + 1):
+                        if col in range(0, floor((self.D/2))):
+                            self.q_1.add((row, col))
+                    if row in range(ceil(self.D/2), self.D):
+                        if col in range(0, floor(self.D/2) + 1):
+                            self.q_3.add((row, col))
+                    if row in range(floor(self.D/2), self.D):
+                        if col in range(ceil(self.D/2), self.D):
+                            self.q_4.add((row, col))
 
     def plugged_leaks(self) -> bool:
         return self.leak_plugged
