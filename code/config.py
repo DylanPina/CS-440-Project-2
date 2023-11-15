@@ -1,8 +1,8 @@
 import logging
 import argparse
-import csv
 from enum import Enum
 from typing import List
+from collections import namedtuple
 
 # Output file for ship layout
 INITIAL_SHIP_LAYOUT_OUTPUT_FILE = "output/initial_ship_layout.log"
@@ -52,6 +52,9 @@ class GameResult:
         self.bot_variant = bot_variant
         self.ship_dimensions = ship_dimensions
         self.run_time_ms = run_time_ms
+
+
+Quadrant = namedtuple("Quadrant", "name cells")
 
 
 def init_logging() -> None:
