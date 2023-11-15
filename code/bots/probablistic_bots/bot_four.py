@@ -5,7 +5,6 @@ from typing import Tuple, List, Optional
 from config import Bots, Cell, Quadrant
 from math import e, ceil
 from collections import deque
-from .sensory_data import SensoryData
 
 
 class BotFour(ProbabilisticBot):

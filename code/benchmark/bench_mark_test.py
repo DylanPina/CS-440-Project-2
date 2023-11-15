@@ -93,7 +93,7 @@ class BenchMarkTest():
         _, axis = plt.subplots()
 
         axis.set_title(
-            f"{self.bot} - {self.itr} for each alpha value; Ship size {self.d}x{self.d}")
+            f"{self.bot} - {self.itr} for each alpha value; Ship size 30x30")
         axis.set_ylabel('Actions')
         axis.set_xlabel('alpha')
 

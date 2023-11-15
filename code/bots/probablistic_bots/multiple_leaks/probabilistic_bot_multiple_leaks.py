@@ -22,7 +22,6 @@ class ProbabilisticBotMultipleLeaks(ProbabilisticBot, ABC):
         self.sensory_data = self.initialize_sensory_data()
         self.sensory_data_pairs_map = self.initialize_sensory_data_pairs_map()
         self.print_sensory_data("initial")
-        # self.print_sensory_data_pairs_map("initial")
         self.distance = self.get_distances()
 
     def initialize_sensory_data(self) -> List[List[SensoryData]]:

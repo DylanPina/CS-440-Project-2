@@ -7,7 +7,7 @@ from random import randint, choice
 from bots import Bot
 from bots.deterministic_bots import DeterministicBot, BotFive, BotSix
 from bots.probablistic_bots import BotSeven
-from bots.probablistic_bots.multiple_leaks import BotEight
+from bots.probablistic_bots.multiple_leaks import BotEight, BotNine
 
 
 class Ship:
@@ -169,7 +169,7 @@ class Ship:
                 logging.debug("Placing leak for deterministic bot")
                 self.place_leak_deterministic()
         else:
-            if isinstance(self.bot, BotSeven) or isinstance(self.bot, BotEight):
+            if isinstance(self.bot, BotSeven) or isinstance(self.bot, BotEight) or isinstance(self.bot, BotNine):
                 logging.debug("Placing leaks for probabilistic bot")
                 self.place_multiple_leaks_probabilistic()
             else:

@@ -33,6 +33,7 @@ class Bots(Enum):
     BOT6 = 6
     BOT7 = 7
     BOT8 = 8
+    BOT9 = 9
 
     def __str__(self):
         return f"Bot {self.value}"
