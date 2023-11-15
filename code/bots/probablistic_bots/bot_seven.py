@@ -50,21 +50,15 @@ class BotSeven(ProbabilisticBot):
         return self.bot_location
 
     def beep(self) -> Tuple[bool, float]:
-        """
-        Returns whether a beep occured and probability what the probability of the beep occuring was
-        P( beep in cell i ) = sum_k P( leak in k AND beep in cell i )
-            = sum_k P( leak in k ) * P( beep in i | leak in k )
-            = sum_k P( leak in k ) *  e^(-a*(d(i,k)-1))
-        """
-
-        distance = float("inf")
-        for l in self.leak_locations:
-            if (self.distance[self.bot_location][l] - 1) < distance:
-                distance = self.distance[self.bot_location][l] - 1
-
-        p_beep = e**(-self.alpha * (distance))
-
-        return (random.random() < p_beep, p_beep)
+        """Returns whether a beep occured"""
+        leak_one = self.leak_locations[0]
+        leak_two = self.leak_locations[1] if len(
+            self.leak_locations) == 2 else None
+        p_beep_one = e**(-self.alpha *
+                         (self.distance[self.bot_location][leak_one] - 1))
+        p_beep_two = e**(-self.alpha *
+                         (self.distance[self.bot_location][leak_two] - 1)) if leak_two else 0
+        return ((random.random() <= p_beep_one) or (random.random() <= p_beep_two), 1 - ((1 - p_beep_one) * (1 - p_beep_two)))
 
     def plugged_leaks(self) -> bool:
         return self.leaks_plugged == 2
